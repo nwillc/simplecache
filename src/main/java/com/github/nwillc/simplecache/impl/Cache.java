@@ -29,11 +29,19 @@ public class Cache<K,V> implements com.github.nwillc.simplecache.Cache<K,V> {
 
 	@Override
 	public boolean putIfAbsent(K key, V value) {
-		return false;
+		if (containsKey(key)) {
+			return false;
+		}
+
+		put(key, value);
+		return true;
 	}
 
 	@Override
 	public boolean remove(K key) {
+		if (!containsKey(key)) {
+			return false;
+		}
 		map.remove(key);
 		return true;
 	}
