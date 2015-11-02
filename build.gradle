@@ -50,6 +50,7 @@ dependencies {
     compile 'org.slf4j:slf4j-api:1.7.12'
 
     testCompile 'junit:junit:4.12',
+            'com.github.nwillc:contracts:1.6.7',
             'org.assertj:assertj-core:3.2.0'
 }
 
