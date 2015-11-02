@@ -16,6 +16,8 @@
 
 package com.github.nwillc.simplecache;
 
+import com.github.nwillc.simplecache.configuration.Configuration;
+
 public interface CacheManager {
 	<K,V> Cache<K,V> createCache(String cacheName, Configuration<K,V> configuration);
 	void destroyCache(String cacheName);

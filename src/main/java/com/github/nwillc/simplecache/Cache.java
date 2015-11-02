@@ -16,6 +16,8 @@
 
 package com.github.nwillc.simplecache;
 
+import com.github.nwillc.simplecache.integration.Lookup;
+
 import java.util.stream.Stream;
 
 /**

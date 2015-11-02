@@ -14,7 +14,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.github.nwillc.simplecache;
+package com.github.nwillc.simplecache.configuration;
+
+import com.github.nwillc.simplecache.integration.Lookup;
 
 import java.util.Optional;
 

@@ -17,7 +17,7 @@
 package com.github.nwillc.simplecache.impl;
 
 import com.github.nwillc.simplecache.Cache;
-import com.github.nwillc.simplecache.Configuration;
+import com.github.nwillc.simplecache.configuration.Configuration;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
