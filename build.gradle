@@ -31,14 +31,11 @@ buildscript {
     }
 }
 
-
 apply plugin: 'release'
 apply plugin: "com.github.nwillc.vplugin"
 apply plugin: 'java'
 apply plugin: "com.jfrog.bintray"
 apply plugin: "maven-publish"
-
-
 
 repositories {
     jcenter {
@@ -54,7 +51,7 @@ dependencies {
 }
 
 group = "com.github.nwillc"
-version = "0.1"
+version = "0.2"
 targetCompatibility = "1.8"
 sourceCompatibility = "1.8"
 
