@@ -14,7 +14,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.github.nwillc.simplecache.impl;
+package com.github.nwillc.simplecache;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -23,7 +23,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 
 public class CacheManagerTest {
-	private com.github.nwillc.simplecache.CacheManager cacheManager;
+	private javax.cache.CacheManager cacheManager;
 
 	@Before
 	public void setUp() throws Exception {
@@ -32,14 +32,14 @@ public class CacheManagerTest {
 
 	@Test
 	public void shouldCreateCache() throws Exception {
-		com.github.nwillc.simplecache.Cache cache = cacheManager.<Long,String>createCache("foo", null);
+		javax.cache.Cache cache = cacheManager.createCache("foo", null);
 		assertThat(cache).isNotNull();
 		assertThat(cache).isInstanceOf(Cache.class);
 	}
 
 	@Test
 	public void shouldDestroyCache() throws Exception {
-		cacheManager.<Long,String>createCache("foo", null);
+		cacheManager.createCache("foo", null);
 		assertThat(cacheManager.getCache("foo")).isNotNull();
 		cacheManager.destroyCache("foo");
 		assertThat(cacheManager.getCache("foo")).isNull();
@@ -48,7 +48,7 @@ public class CacheManagerTest {
 	@Test
 	public void shouldGetCache() throws Exception {
 		assertThat(cacheManager.getCache("foo")).isNull();
-		cacheManager.<Long,String>createCache("foo", null);
+		cacheManager.createCache("foo", null);
 		assertThat(cacheManager.getCache("foo")).isNotNull();
 	}
 }

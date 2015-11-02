@@ -14,29 +14,43 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.github.nwillc.simplecache.impl;
+package com.github.nwillc.simplecache;
 
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 
 public class CacheTest {
-	private com.github.nwillc.simplecache.Cache<Long, String> cache;
+	private javax.cache.Cache<Long, String> cache;
+    private javax.cache.CacheManager cacheManager;
+    private static final String NAME = "hoard";
 
 	@Before
 	public void setUp() throws Exception {
-		cache = new Cache<>();
+        javax.cache.spi.CachingProvider cachingProvider = javax.cache.Caching.getCachingProvider(CachingProvider.class.getCanonicalName());
+        cacheManager = cachingProvider.getCacheManager();
+		cache = cacheManager.createCache(NAME, null);
 	}
 
-	@Test
+    @Test
+    public void testKnowOrigins() throws Exception {
+        assertThat(cache.getCacheManager()).isEqualTo(cacheManager);
+        assertThat(cache.getName()).isEqualTo(NAME);
+    }
+
+    @Test
+    public void testUnwrap() throws Exception {
+        assertThat(cache.unwrap(Cache.class)).isEqualTo(cache);
+    }
+
+    @Test
 	public void shouldClear() throws Exception {
 		cache.put(0L, "foo");
-		assertThat(cache.stream().count()).isGreaterThan(0L);
+		assertThat(cache.unwrap(Cache.class).stream().count()).isGreaterThan(0L);
 		cache.clear();
-		assertThat(cache.stream().count()).isEqualTo(0L);
+		assertThat(cache.unwrap(Cache.class).stream().count()).isEqualTo(0L);
 	}
 
 	@Test
@@ -48,10 +62,10 @@ public class CacheTest {
 
 	@Test
 	public void shouldStream() throws Exception {
-	   	assertThat(cache.stream().count()).isEqualTo(0L);
+	   	assertThat(cache.unwrap(Cache.class).stream().count()).isEqualTo(0L);
 		cache.put(0L, "foo");
-		assertThat(cache.stream().count()).isEqualTo(1L);
-		assertThat(cache.stream().anyMatch(e -> e.getKey().equals(0L))).isTrue();
+		assertThat(cache.unwrap(Cache.class).stream().count()).isEqualTo(1L);
+		assertThat(((Cache<Long,String>)cache.unwrap(Cache.class)).stream().anyMatch(e -> e.getKey().equals(0L))).isTrue();
 	}
 
 	@Test

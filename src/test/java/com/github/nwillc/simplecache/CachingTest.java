@@ -16,21 +16,17 @@
 
 package com.github.nwillc.simplecache;
 
-import com.github.nwillc.contracts.UtilityClassContract;
-import com.github.nwillc.simplecache.spi.CachingProvider;
 import org.junit.Test;
+
+import javax.cache.spi.CachingProvider;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-public class CachingTest extends UtilityClassContract {
-    @Override
-    public Class<?> getClassToTest() {
-        return Caching.class;
-    }
+public class CachingTest {
 
     @Test
     public void testGetCachingProvider() throws Exception {
-        CachingProvider cachingProvider = Caching.getCachingProvider("com.github.nwillc.simplecache.impl.CachingProvider");
+        CachingProvider cachingProvider = javax.cache.Caching.getCachingProvider(com.github.nwillc.simplecache.CachingProvider.class.getCanonicalName());
         assertThat(cachingProvider).isNotNull();
     }
 }

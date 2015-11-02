@@ -14,14 +14,30 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.github.nwillc.simplecache.impl;
+package com.github.nwillc.simplecache;
 
-import com.github.nwillc.simplecache.Cache;
+import org.junit.Test;
 
-import java.util.AbstractMap;
+import javax.cache.*;
+import javax.cache.Cache;
 
-public class KeyValue<K,V> extends AbstractMap.SimpleEntry<K,V> implements Cache.Entry<K,V> {
-	public KeyValue(K key, V value) {
-		super(key, value);
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+
+public class EntryTest {
+	@Test
+	public void shouldStore() throws Exception {
+		final Long key = 42L;
+		final String value = "The answer.";
+
+		Entry<Long,String> kv = new Entry<>(key, value);
+		assertThat(kv.getKey()).isEqualTo(key);
+		assertThat(kv.getValue()).isEqualTo(value);
 	}
+
+    @Test
+    public void testUnwrap() throws Exception {
+        Cache.Entry<Long, String> entry = new Entry<>(0L, "foo");
+
+        assertThat(entry.unwrap(Entry.class)).isEqualTo(entry);
+    }
 }

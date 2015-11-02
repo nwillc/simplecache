@@ -16,10 +16,85 @@
 
 package com.github.nwillc.simplecache;
 
-import com.github.nwillc.simplecache.configuration.Configuration;
+import javax.cache.Cache;
+import javax.cache.configuration.Configuration;
+import java.net.URI;
+import java.util.Map;
+import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 
-public interface CacheManager {
-	<K,V> Cache<K,V> createCache(String cacheName, Configuration<K,V> configuration);
-	void destroyCache(String cacheName);
-	<K,V> Cache<K,V> getCache(String cacheName);
+public class CacheManager implements javax.cache.CacheManager {
+    private final Map<String, Cache> cacheMap = new ConcurrentHashMap<>();
+
+    @Override
+    public javax.cache.spi.CachingProvider getCachingProvider() {
+        return new CachingProvider();
+    }
+
+    @Override
+    public URI getURI() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ClassLoader getClassLoader() {
+        return ClassLoader.getSystemClassLoader();
+    }
+
+    @Override
+    public Properties getProperties() {
+        return null;
+    }
+
+    @Override
+    public <K, V, C extends Configuration<K, V>> javax.cache.Cache<K, V> createCache(String cacheName, C configuration) throws IllegalArgumentException {
+        Cache<K,V> cache = new com.github.nwillc.simplecache.Cache<>(this, cacheName);
+        cacheMap.put(cacheName, cache);
+        return cache;
+    }
+
+    @Override
+    public <K, V> Cache<K, V> getCache(String cacheName, Class<K> keyType, Class<V> valueType) {
+        return null;
+    }
+
+    @Override
+    public <K, V> Cache<K, V> getCache(String cacheName) {
+        return cacheMap.get(cacheName);
+    }
+
+    @Override
+    public Iterable<String> getCacheNames() {
+        return null;
+    }
+
+    @Override
+    public void destroyCache(String cacheName) {
+        cacheMap.remove(cacheName);
+    }
+
+    @Override
+    public void enableManagement(String cacheName, boolean enabled) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void enableStatistics(String cacheName, boolean enabled) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void close() {
+
+    }
+
+    @Override
+    public boolean isClosed() {
+        return false;
+    }
+
+    @Override
+    public <T> T unwrap(Class<T> clazz) {
+        return null;
+    }
 }

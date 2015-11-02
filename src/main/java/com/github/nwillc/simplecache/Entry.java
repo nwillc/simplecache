@@ -14,20 +14,28 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.github.nwillc.simplecache.configuration;
+package com.github.nwillc.simplecache;
 
-import com.github.nwillc.simplecache.integration.Lookup;
+import java.util.AbstractMap;
+import java.util.Map;
 
-import java.util.Optional;
 
-public class Configuration<K,V> {
-	private Optional<Lookup<K,V>> readThrough = Optional.empty();
+public class Entry<K,V> extends AbstractMap.SimpleEntry<K,V> implements javax.cache.Cache.Entry<K,V> {
 
-	public void setReadThroughLookup(Lookup<K, V> readThrough) {
-		this.readThrough = Optional.ofNullable(readThrough);
+    public Entry(Map.Entry<? extends K, ? extends V> entry) {
+        super(entry);
+    }
+
+    public Entry(K key, V value) {
+		super(key, value);
 	}
 
-	public Optional<Lookup<K, V>> getReadThrough() {
-		return readThrough;
-	}
+    @SuppressWarnings("unchecked")
+    @Override
+    public <T> T unwrap(Class<T> clazz) {
+        if (!clazz.equals(this.getClass())) {
+            throw new IllegalArgumentException();
+        }
+        return (T)this;
+    }
 }
