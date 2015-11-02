@@ -20,8 +20,8 @@ import java.util.stream.Stream;
 
 /**
  * A JSR 107 inspired simple caching interface.
- * @param <K>
- * @param <V>
+ * @param <K> Keys of the cache
+ * @param <V> Values of the cache
  */
 public interface Cache<K,V> extends Lookup<K,V> {
 	void clear();
