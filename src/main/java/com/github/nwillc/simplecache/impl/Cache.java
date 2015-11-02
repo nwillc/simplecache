@@ -16,12 +16,12 @@
 
 package com.github.nwillc.simplecache.impl;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
 public class Cache<K,V> implements com.github.nwillc.simplecache.Cache<K,V> {
-	private Map<K,V> map = new HashMap<>();
+	private Map<K,V> map = new ConcurrentHashMap<>();
 
 	@Override
 	public void clear() {

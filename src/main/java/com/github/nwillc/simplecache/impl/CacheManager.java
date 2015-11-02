@@ -16,14 +16,14 @@
 
 package com.github.nwillc.simplecache.impl;
 
-import com.github.nwillc.simplecache.*;
 import com.github.nwillc.simplecache.Cache;
+import com.github.nwillc.simplecache.Configuration;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class CacheManager implements com.github.nwillc.simplecache.CacheManager {
-	private final Map<String, Cache> caches = new HashMap<>();
+	private final Map<String, Cache> caches = new ConcurrentHashMap<>();
 
 	@Override
 	public <K, V> Cache<K, V> createCache(String cacheName, Configuration<K, V> configuration) {
