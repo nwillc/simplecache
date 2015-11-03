@@ -24,6 +24,7 @@ import javax.cache.integration.CompletionListener;
 import javax.cache.processor.EntryProcessor;
 import javax.cache.processor.EntryProcessorException;
 import javax.cache.processor.EntryProcessorResult;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -49,7 +50,9 @@ public class Cache<K, V> implements javax.cache.Cache<K, V> {
 
     @Override
     public Map<K, V> getAll(Set<? extends K> keys) {
-        return keys.stream().collect(Collectors.toMap(Function.identity(),this::get));
+        Map<K,V> retMap = new HashMap<>();
+        keys.stream().forEach(k -> map.computeIfPresent(k, retMap::put));
+        return retMap;
     }
 
     @Override
