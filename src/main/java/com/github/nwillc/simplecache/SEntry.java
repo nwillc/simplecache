@@ -16,11 +16,12 @@
 
 package com.github.nwillc.simplecache;
 
+import javax.cache.Cache;
 import java.util.AbstractMap;
 import java.util.Map;
 
 
-public class SEntry<K, V> extends AbstractMap.SimpleEntry<K, V> implements javax.cache.Cache.Entry<K, V> {
+public class SEntry<K, V> extends AbstractMap.SimpleEntry<K, V> implements Cache.Entry<K, V> {
 
     public SEntry(Map.Entry<? extends K, ? extends V> entry) {
         super(entry);
@@ -30,7 +31,6 @@ public class SEntry<K, V> extends AbstractMap.SimpleEntry<K, V> implements javax
         super(key, value);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T> T unwrap(Class<T> clazz) {
         if (clazz.isAssignableFrom(this.getClass())) {

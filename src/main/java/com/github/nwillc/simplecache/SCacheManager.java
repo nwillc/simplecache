@@ -19,18 +19,20 @@ package com.github.nwillc.simplecache;
 import com.github.nwillc.simplecache.spi.SCachingProvider;
 
 import javax.cache.Cache;
+import javax.cache.CacheManager;
 import javax.cache.configuration.Configuration;
+import javax.cache.spi.CachingProvider;
 import java.net.URI;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class SCacheManager implements javax.cache.CacheManager {
+public class SCacheManager implements CacheManager {
     private final Map<String, Cache> cacheMap = new ConcurrentHashMap<>();
     private final Properties properties = new Properties();
 
     @Override
-    public javax.cache.spi.CachingProvider getCachingProvider() {
+    public CachingProvider getCachingProvider() {
         return new SCachingProvider();
     }
 
@@ -50,7 +52,7 @@ public class SCacheManager implements javax.cache.CacheManager {
     }
 
     @Override
-    public <K, V, C extends Configuration<K, V>> javax.cache.Cache<K, V> createCache(String cacheName, C configuration) throws IllegalArgumentException {
+    public <K, V, C extends Configuration<K, V>> Cache<K, V> createCache(String cacheName, C configuration) throws IllegalArgumentException {
         Cache<K, V> cache = new SCache<>(this, cacheName, configuration);
         cacheMap.put(cacheName, cache);
         return cache;

@@ -20,17 +20,18 @@ import com.github.nwillc.simplecache.SCacheManager;
 
 import javax.cache.CacheManager;
 import javax.cache.configuration.OptionalFeature;
+import javax.cache.spi.CachingProvider;
 import java.net.URI;
 import java.util.Properties;
 
-public class SCachingProvider implements javax.cache.spi.CachingProvider {
+public class SCachingProvider implements CachingProvider {
     private final Properties properties = new Properties();
 
     public SCachingProvider() {
     }
 
     @Override
-    public javax.cache.CacheManager getCacheManager(URI uri, ClassLoader classLoader, Properties properties) {
+    public CacheManager getCacheManager(URI uri, ClassLoader classLoader, Properties properties) {
         throw new UnsupportedOperationException();
     }
 

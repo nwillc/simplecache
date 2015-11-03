@@ -20,7 +20,11 @@ import com.github.nwillc.simplecache.spi.SCachingProvider;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.cache.Cache;
+import javax.cache.CacheManager;
+import javax.cache.Caching;
 import javax.cache.configuration.MutableConfiguration;
+import javax.cache.spi.CachingProvider;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -30,12 +34,12 @@ import static org.assertj.core.data.MapEntry.entry;
 
 public class SCacheTest {
     private static final String NAME = "hoard";
-    private javax.cache.Cache<Long, String> cache;
-    private javax.cache.CacheManager cacheManager;
+    private Cache<Long, String> cache;
+    private CacheManager cacheManager;
 
     @Before
     public void setUp() throws Exception {
-        javax.cache.spi.CachingProvider cachingProvider = javax.cache.Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
+        CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
         cacheManager = cachingProvider.getCacheManager();
         cache = cacheManager.createCache(NAME, new MutableConfiguration<>());
     }

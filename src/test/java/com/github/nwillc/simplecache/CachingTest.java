@@ -19,6 +19,7 @@ package com.github.nwillc.simplecache;
 import com.github.nwillc.simplecache.spi.SCachingProvider;
 import org.junit.Test;
 
+import javax.cache.Caching;
 import javax.cache.spi.CachingProvider;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -27,7 +28,7 @@ public class CachingTest {
 
     @Test
     public void testGetCachingProvider() throws Exception {
-        CachingProvider cachingProvider = javax.cache.Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
+        CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
         assertThat(cachingProvider).isNotNull();
     }
 }

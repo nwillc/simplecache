@@ -20,7 +20,10 @@ import com.github.nwillc.simplecache.spi.SCachingProvider;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.cache.Cache;
+import javax.cache.CacheManager;
 import javax.cache.configuration.MutableConfiguration;
+import javax.cache.spi.CachingProvider;
 import java.util.Properties;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -28,7 +31,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 
 public class SCacheManagerTest {
-    private javax.cache.CacheManager cacheManager;
+    private CacheManager cacheManager;
     private MutableConfiguration configuration = new MutableConfiguration();
 
     @Before
@@ -38,7 +41,7 @@ public class SCacheManagerTest {
 
     @Test
     public void testGetCachingProvider() throws Exception {
-        javax.cache.spi.CachingProvider cachingProvider = cacheManager.getCachingProvider();
+        CachingProvider cachingProvider = cacheManager.getCachingProvider();
         assertThat(cachingProvider).isNotNull();
         assertThat(cachingProvider).isInstanceOf(SCachingProvider.class);
     }
@@ -63,9 +66,10 @@ public class SCacheManagerTest {
 
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void shouldCreateCache() throws Exception {
-        javax.cache.Cache cache = cacheManager.createCache("foo", configuration);
+        Cache cache = cacheManager.createCache("foo", configuration);
         assertThat(cache).isNotNull();
         assertThat(cache).isInstanceOf(SCache.class);
     }
@@ -121,7 +125,7 @@ public class SCacheManagerTest {
 
     @Test
     public void testUnwrap() throws Exception {
-        javax.cache.CacheManager cacheManager1 = cacheManager.unwrap(SCacheManager.class);
+        CacheManager cacheManager1 = cacheManager.unwrap(SCacheManager.class);
         assertThat(cacheManager1).isNotNull();
         assertThat(cacheManager1).isInstanceOf(SCacheManager.class);
     }

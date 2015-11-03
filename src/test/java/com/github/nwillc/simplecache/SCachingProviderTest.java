@@ -20,13 +20,15 @@ import com.github.nwillc.simplecache.spi.SCachingProvider;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.cache.CacheManager;
+import javax.cache.spi.CachingProvider;
 import java.util.Properties;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 public class SCachingProviderTest {
-    private javax.cache.spi.CachingProvider cachingProvider;
+    private CachingProvider cachingProvider;
 
     @Before
     public void setUp() throws Exception {
@@ -62,7 +64,7 @@ public class SCachingProviderTest {
 
     @Test
     public void testGetCacheManager2() throws Exception {
-        javax.cache.CacheManager cacheManager = cachingProvider.getCacheManager();
+        CacheManager cacheManager = cachingProvider.getCacheManager();
         assertThat(cacheManager).isNotNull();
         assertThat(cacheManager).isInstanceOf(SCacheManager.class);
     }

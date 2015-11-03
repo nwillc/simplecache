@@ -17,6 +17,7 @@
 package com.github.nwillc.simplecache;
 
 
+import javax.cache.Cache;
 import javax.cache.CacheManager;
 import javax.cache.configuration.CacheEntryListenerConfiguration;
 import javax.cache.configuration.Configuration;
@@ -33,9 +34,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class SCache<K, V> implements javax.cache.Cache<K, V> {
+public final class SCache<K, V> implements Cache<K, V> {
     private final Map<K, V> map = new ConcurrentHashMap<>();
-    private final javax.cache.CacheManager cacheManager;
+    private final CacheManager cacheManager;
     private final String name;
     private final MutableConfiguration<K, V> configuration;
 
@@ -162,7 +163,7 @@ public final class SCache<K, V> implements javax.cache.Cache<K, V> {
     }
 
     @Override
-    public javax.cache.CacheManager getCacheManager() {
+    public CacheManager getCacheManager() {
         return cacheManager;
     }
 
