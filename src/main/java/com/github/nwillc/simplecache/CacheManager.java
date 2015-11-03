@@ -48,14 +48,14 @@ public class CacheManager implements javax.cache.CacheManager {
 
     @Override
     public <K, V, C extends Configuration<K, V>> javax.cache.Cache<K, V> createCache(String cacheName, C configuration) throws IllegalArgumentException {
-        Cache<K,V> cache = new com.github.nwillc.simplecache.Cache<>(this, cacheName);
+        Cache<K,V> cache = new com.github.nwillc.simplecache.Cache<>(this, cacheName, configuration);
         cacheMap.put(cacheName, cache);
         return cache;
     }
 
     @Override
     public <K, V> Cache<K, V> getCache(String cacheName, Class<K> keyType, Class<V> valueType) {
-        return null;
+        return getCache(cacheName);
     }
 
     @Override

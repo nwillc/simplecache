@@ -67,7 +67,7 @@ public class CachingProvider implements javax.cache.spi.CachingProvider {
 
     @Override
     public void close(URI uri, ClassLoader classLoader) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override

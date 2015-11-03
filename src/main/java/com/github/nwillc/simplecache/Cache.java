@@ -29,7 +29,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -37,10 +36,12 @@ public class Cache<K, V> implements javax.cache.Cache<K, V> {
     private final Map<K, V> map = new ConcurrentHashMap<>();
     private final javax.cache.CacheManager cacheManager;
     private final String name;
+    private final Configuration<K,V> configuration;
 
-    public Cache(CacheManager cacheManager, String name) {
+    public Cache(CacheManager cacheManager, String name, Configuration<K,V> configuration) {
         this.cacheManager = cacheManager;
         this.name = name;
+        this.configuration = configuration;
     }
 
     @Override
@@ -94,7 +95,7 @@ public class Cache<K, V> implements javax.cache.Cache<K, V> {
 
     @Override
     public boolean remove(K key, V oldValue) {
-        return remove(key, oldValue);
+        return map.remove(key, oldValue);
     }
 
     @Override
@@ -136,7 +137,7 @@ public class Cache<K, V> implements javax.cache.Cache<K, V> {
 
     @Override
     public <C extends Configuration<K, V>> C getConfiguration(Class<C> clazz) {
-        return null;
+        return (C)configuration;
     }
 
     @Override
