@@ -21,6 +21,7 @@ import org.junit.Test;
 import javax.cache.*;
 import javax.cache.Cache;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 public class EntryTest {
@@ -39,5 +40,11 @@ public class EntryTest {
         Cache.Entry<Long, String> entry = new Entry<>(0L, "foo");
 
         assertThat(entry.unwrap(Entry.class)).isEqualTo(entry);
+    }
+
+    @Test
+    public void testUnwrapFail() throws Exception {
+        Cache.Entry<Long, String> entry = new Entry<>(0L, "foo");
+        assertThatThrownBy(() -> entry.unwrap(String.class)).isInstanceOf(IllegalArgumentException.class);
     }
 }
