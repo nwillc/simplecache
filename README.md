@@ -1,5 +1,5 @@
 # simplecache
-This is a limited JSR 107 implementation backed by a ConcurrentHashMap.  The goal was to provide JSR 107 
+This is a limited JSR 107 implementation backed by a store by reference ConcurrentHashMap.  The goal was to provide JSR 107 
 compatibility with a tiny in JVM cache.  Basically this is only useful to front things like slow out of process
 requests.
 
