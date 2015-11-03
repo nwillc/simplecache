@@ -16,6 +16,7 @@
 
 package com.github.nwillc.simplecache;
 
+import com.github.nwillc.simplecache.integration.SCacheLoader;
 import org.junit.Before;
 import org.junit.Test;
 

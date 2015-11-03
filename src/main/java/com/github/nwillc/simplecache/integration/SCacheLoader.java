@@ -14,7 +14,7 @@
  *    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.github.nwillc.simplecache;
+package com.github.nwillc.simplecache.integration;
 
 import javax.cache.integration.CacheLoader;
 import javax.cache.integration.CacheLoaderException;
