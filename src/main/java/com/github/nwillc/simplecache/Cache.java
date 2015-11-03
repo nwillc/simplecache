@@ -96,32 +96,34 @@ public class Cache<K, V> implements javax.cache.Cache<K, V> {
 
     @Override
     public V getAndRemove(K key) {
-        return null;
+        V value = get(key);
+        remove(key);
+        return value;
     }
 
     @Override
     public boolean replace(K key, V oldValue, V newValue) {
-        return replace(key, oldValue, newValue);
+        return map.replace(key, oldValue, newValue);
     }
 
     @Override
     public boolean replace(K key, V value) {
-        return false;
+        return map.replace(key, value) != null;
     }
 
     @Override
     public V getAndReplace(K key, V value) {
-        return null;
+        return map.replace(key, value);
     }
 
     @Override
     public void removeAll(Set<? extends K> keys) {
-
+      keys.stream().forEach(this::remove);
     }
 
     @Override
     public void removeAll() {
-
+        removeAll(map.keySet());
     }
 
     @Override
