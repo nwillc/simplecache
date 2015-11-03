@@ -142,12 +142,12 @@ public class Cache<K, V> implements javax.cache.Cache<K, V> {
 
     @Override
     public <T> T invoke(K key, EntryProcessor<K, V, T> entryProcessor, Object... arguments) throws EntryProcessorException {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public <T> Map<K, EntryProcessorResult<T>> invokeAll(Set<? extends K> keys, EntryProcessor<K, V, T> entryProcessor, Object... arguments) {
-        return null;
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -181,12 +181,12 @@ public class Cache<K, V> implements javax.cache.Cache<K, V> {
 
     @Override
     public void registerCacheEntryListener(CacheEntryListenerConfiguration<K, V> cacheEntryListenerConfiguration) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void deregisterCacheEntryListener(CacheEntryListenerConfiguration<K, V> cacheEntryListenerConfiguration) {
-
+        throw new UnsupportedOperationException();
     }
 
     @Override
