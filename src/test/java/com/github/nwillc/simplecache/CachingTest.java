@@ -16,6 +16,7 @@
 
 package com.github.nwillc.simplecache;
 
+import com.github.nwillc.simplecache.spi.SCachingProvider;
 import org.junit.Test;
 
 import javax.cache.spi.CachingProvider;
@@ -26,7 +27,7 @@ public class CachingTest {
 
     @Test
     public void testGetCachingProvider() throws Exception {
-        CachingProvider cachingProvider = javax.cache.Caching.getCachingProvider(com.github.nwillc.simplecache.CachingProvider.class.getCanonicalName());
+        CachingProvider cachingProvider = javax.cache.Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
         assertThat(cachingProvider).isNotNull();
     }
 }

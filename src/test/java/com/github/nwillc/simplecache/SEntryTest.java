@@ -23,27 +23,27 @@ import javax.cache.Cache;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-public class EntryTest {
-	@Test
-	public void shouldStore() throws Exception {
-		final Long key = 42L;
-		final String value = "The answer.";
+public class SEntryTest {
+    @Test
+    public void shouldStore() throws Exception {
+        final Long key = 42L;
+        final String value = "The answer.";
 
-		Entry<Long,String> kv = new Entry<>(key, value);
-		assertThat(kv.getKey()).isEqualTo(key);
-		assertThat(kv.getValue()).isEqualTo(value);
-	}
+        SEntry<Long, String> kv = new SEntry<>(key, value);
+        assertThat(kv.getKey()).isEqualTo(key);
+        assertThat(kv.getValue()).isEqualTo(value);
+    }
 
     @Test
     public void testUnwrap() throws Exception {
-        Cache.Entry<Long, String> entry = new Entry<>(0L, "foo");
+        Cache.Entry<Long, String> entry = new SEntry<>(0L, "foo");
 
-        assertThat(entry.unwrap(Entry.class)).isEqualTo(entry);
+        assertThat(entry.unwrap(SEntry.class)).isEqualTo(entry);
     }
 
     @Test
     public void testUnwrapFail() throws Exception {
-        Cache.Entry<Long, String> entry = new Entry<>(0L, "foo");
+        Cache.Entry<Long, String> entry = new SEntry<>(0L, "foo");
         assertThatThrownBy(() -> entry.unwrap(String.class)).isInstanceOf(IllegalArgumentException.class);
     }
 }

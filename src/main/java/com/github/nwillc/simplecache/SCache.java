@@ -20,6 +20,7 @@ package com.github.nwillc.simplecache;
 import javax.cache.CacheManager;
 import javax.cache.configuration.CacheEntryListenerConfiguration;
 import javax.cache.configuration.Configuration;
+import javax.cache.configuration.MutableConfiguration;
 import javax.cache.integration.CompletionListener;
 import javax.cache.processor.EntryProcessor;
 import javax.cache.processor.EntryProcessorException;
@@ -32,16 +33,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class Cache<K, V> implements javax.cache.Cache<K, V> {
+public final class SCache<K, V> implements javax.cache.Cache<K, V> {
     private final Map<K, V> map = new ConcurrentHashMap<>();
     private final javax.cache.CacheManager cacheManager;
     private final String name;
-    private final Configuration<K,V> configuration;
+    private final MutableConfiguration<K, V> configuration;
 
-    public Cache(CacheManager cacheManager, String name, Configuration<K,V> configuration) {
+    @SuppressWarnings("unchecked")
+    public SCache(CacheManager cacheManager, String name, Configuration<K, V> configuration) {
         this.cacheManager = cacheManager;
         this.name = name;
-        this.configuration = configuration;
+        this.configuration = new MutableConfiguration<>((MutableConfiguration) configuration);
     }
 
     @Override
@@ -51,7 +53,7 @@ public class Cache<K, V> implements javax.cache.Cache<K, V> {
 
     @Override
     public Map<K, V> getAll(Set<? extends K> keys) {
-        Map<K,V> retMap = new HashMap<>();
+        Map<K, V> retMap = new HashMap<>();
         keys.stream().forEach(k -> map.computeIfPresent(k, retMap::put));
         return retMap;
     }
@@ -122,7 +124,7 @@ public class Cache<K, V> implements javax.cache.Cache<K, V> {
 
     @Override
     public void removeAll(Set<? extends K> keys) {
-      keys.stream().forEach(this::remove);
+        keys.stream().forEach(this::remove);
     }
 
     @Override
@@ -137,7 +139,11 @@ public class Cache<K, V> implements javax.cache.Cache<K, V> {
 
     @Override
     public <C extends Configuration<K, V>> C getConfiguration(Class<C> clazz) {
-        return (C)configuration;
+        if (clazz.isInstance(configuration)) {
+            return clazz.cast(configuration);
+        }
+
+        throw new IllegalArgumentException();
     }
 
     @Override
@@ -170,13 +176,13 @@ public class Cache<K, V> implements javax.cache.Cache<K, V> {
         return false;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     public <T> T unwrap(Class<T> clazz) {
-        if (!this.getClass().equals(clazz)) {
-            throw new IllegalArgumentException();
+        if (clazz.isAssignableFrom(this.getClass())) {
+            return clazz.cast(this);
         }
-        return (T)this;
+
+        throw new IllegalArgumentException();
     }
 
     @Override
@@ -190,11 +196,11 @@ public class Cache<K, V> implements javax.cache.Cache<K, V> {
     }
 
     @Override
-    public Iterator<Entry<K,V>> iterator() {
+    public Iterator<Entry<K, V>> iterator() {
         return stream().collect(Collectors.toList()).iterator();
     }
 
-    public Stream<Entry<K,V>> stream() {
-        return map.entrySet().stream().map(e -> (Entry) new com.github.nwillc.simplecache.Entry<>(e));
+    public Stream<Entry<K, V>> stream() {
+        return map.entrySet().stream().map(e -> (Entry) new SEntry<>(e));
     }
 }

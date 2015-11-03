@@ -16,28 +16,31 @@
 
 package com.github.nwillc.simplecache;
 
+import com.github.nwillc.simplecache.spi.SCachingProvider;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.cache.configuration.MutableConfiguration;
 import java.util.Properties;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 
-public class CacheManagerTest {
-	private javax.cache.CacheManager cacheManager;
+public class SCacheManagerTest {
+    private javax.cache.CacheManager cacheManager;
+    private MutableConfiguration configuration = new MutableConfiguration();
 
-	@Before
-	public void setUp() throws Exception {
-		cacheManager = new CacheManager();
-	}
+    @Before
+    public void setUp() throws Exception {
+        cacheManager = new SCacheManager();
+    }
 
     @Test
     public void testGetCachingProvider() throws Exception {
         javax.cache.spi.CachingProvider cachingProvider = cacheManager.getCachingProvider();
         assertThat(cachingProvider).isNotNull();
-        assertThat(cachingProvider).isInstanceOf(CachingProvider.class);
+        assertThat(cachingProvider).isInstanceOf(SCachingProvider.class);
     }
 
     @Test
@@ -61,38 +64,38 @@ public class CacheManagerTest {
     }
 
     @Test
-	public void shouldCreateCache() throws Exception {
-		javax.cache.Cache cache = cacheManager.createCache("foo", null);
-		assertThat(cache).isNotNull();
-		assertThat(cache).isInstanceOf(Cache.class);
-	}
+    public void shouldCreateCache() throws Exception {
+        javax.cache.Cache cache = cacheManager.createCache("foo", configuration);
+        assertThat(cache).isNotNull();
+        assertThat(cache).isInstanceOf(SCache.class);
+    }
 
-	@Test
-	public void shouldDestroyCache() throws Exception {
-		cacheManager.createCache("foo", null);
-		assertThat(cacheManager.getCache("foo")).isNotNull();
-		cacheManager.destroyCache("foo");
-		assertThat(cacheManager.getCache("foo")).isNull();
-	}
+    @Test
+    public void shouldDestroyCache() throws Exception {
+        cacheManager.createCache("foo", configuration);
+        assertThat(cacheManager.getCache("foo")).isNotNull();
+        cacheManager.destroyCache("foo");
+        assertThat(cacheManager.getCache("foo")).isNull();
+    }
 
-	@Test
-	public void shouldGetCache() throws Exception {
-		assertThat(cacheManager.getCache("foo")).isNull();
-		cacheManager.createCache("foo", null);
-		assertThat(cacheManager.getCache("foo")).isNotNull();
-	}
+    @Test
+    public void shouldGetCache() throws Exception {
+        assertThat(cacheManager.getCache("foo")).isNull();
+        cacheManager.createCache("foo", configuration);
+        assertThat(cacheManager.getCache("foo")).isNotNull();
+    }
 
     @Test
     public void shouldGetCache2() throws Exception {
         assertThat(cacheManager.getCache("foo")).isNull();
-        cacheManager.createCache("foo", null);
+        cacheManager.createCache("foo", configuration);
         assertThat(cacheManager.getCache("foo", String.class, Integer.class)).isNotNull();
     }
 
     @Test
     public void testGetCacheNames() throws Exception {
-        cacheManager.createCache("foo", null);
-        cacheManager.createCache("bar", null);
+        cacheManager.createCache("foo", configuration);
+        cacheManager.createCache("bar", configuration);
         assertThat(cacheManager.getCacheNames()).contains("foo", "bar");
     }
 
@@ -118,9 +121,9 @@ public class CacheManagerTest {
 
     @Test
     public void testUnwrap() throws Exception {
-        javax.cache.CacheManager cacheManager1 = cacheManager.unwrap(CacheManager.class);
+        javax.cache.CacheManager cacheManager1 = cacheManager.unwrap(SCacheManager.class);
         assertThat(cacheManager1).isNotNull();
-        assertThat(cacheManager1).isInstanceOf(CacheManager.class);
+        assertThat(cacheManager1).isInstanceOf(SCacheManager.class);
     }
 
     @Test

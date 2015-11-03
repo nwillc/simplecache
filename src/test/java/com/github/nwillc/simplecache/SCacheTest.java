@@ -16,9 +16,11 @@
 
 package com.github.nwillc.simplecache;
 
+import com.github.nwillc.simplecache.spi.SCachingProvider;
 import org.junit.Before;
 import org.junit.Test;
 
+import javax.cache.configuration.MutableConfiguration;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,17 +28,17 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 
-public class CacheTest {
-	private javax.cache.Cache<Long, String> cache;
-    private javax.cache.CacheManager cacheManager;
+public class SCacheTest {
     private static final String NAME = "hoard";
+    private javax.cache.Cache<Long, String> cache;
+    private javax.cache.CacheManager cacheManager;
 
-	@Before
-	public void setUp() throws Exception {
-        javax.cache.spi.CachingProvider cachingProvider = javax.cache.Caching.getCachingProvider(CachingProvider.class.getCanonicalName());
+    @Before
+    public void setUp() throws Exception {
+        javax.cache.spi.CachingProvider cachingProvider = javax.cache.Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
         cacheManager = cachingProvider.getCacheManager();
-		cache = cacheManager.createCache(NAME, null);
-	}
+        cache = cacheManager.createCache(NAME, new MutableConfiguration<>());
+    }
 
     @Test
     public void testGet() throws Exception {
@@ -52,7 +54,7 @@ public class CacheTest {
         Set<Long> keys = new HashSet<>();
         keys.add(0L);
         keys.add(1L);
-        assertThat(cache.getAll(keys)).containsExactly(entry(0L,"zero"), entry(1L, "one"));
+        assertThat(cache.getAll(keys)).containsExactly(entry(0L, "zero"), entry(1L, "one"));
     }
 
     @Test
@@ -63,7 +65,7 @@ public class CacheTest {
 
     @Test
     public void testUnwrap() throws Exception {
-        assertThat(cache.unwrap(Cache.class)).isEqualTo(cache);
+        assertThat(cache.unwrap(SCache.class)).isEqualTo(cache);
     }
 
     @Test
@@ -73,7 +75,7 @@ public class CacheTest {
 
     @Test
     public void testLoadAll() throws Exception {
-        assertThatThrownBy(() -> cache.loadAll(null,false,null)).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> cache.loadAll(null, false, null)).isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
@@ -98,16 +100,16 @@ public class CacheTest {
     }
 
     @Test
-	public void shouldClear() throws Exception {
-		cache.put(0L, "foo");
-		assertThat(cache.unwrap(Cache.class).stream().count()).isGreaterThan(0L);
-		cache.clear();
-		assertThat(cache.unwrap(Cache.class).stream().count()).isEqualTo(0L);
-	}
+    public void shouldClear() throws Exception {
+        cache.put(0L, "foo");
+        assertThat(cache.unwrap(SCache.class).stream().count()).isGreaterThan(0L);
+        cache.clear();
+        assertThat(cache.unwrap(SCache.class).stream().count()).isEqualTo(0L);
+    }
 
     @Test
     public void testInvokeAll() throws Exception {
-        assertThatThrownBy(() -> cache.invokeAll(null,null)).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> cache.invokeAll(null, null)).isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
@@ -116,20 +118,20 @@ public class CacheTest {
     }
 
     @Test
-	public void shouldContainsKey() throws Exception {
-		assertThat(cache.containsKey(0L)).isFalse();
-		cache.put(0L, "foo");
-		assertThat(cache.containsKey(0L)).isTrue();
-	}
+    public void shouldContainsKey() throws Exception {
+        assertThat(cache.containsKey(0L)).isFalse();
+        cache.put(0L, "foo");
+        assertThat(cache.containsKey(0L)).isTrue();
+    }
 
     @SuppressWarnings("unchecked")
-	@Test
-	public void shouldStream() throws Exception {
-	   	assertThat(cache.unwrap(Cache.class).stream().count()).isEqualTo(0L);
-		cache.put(0L, "foo");
-		assertThat(cache.unwrap(Cache.class).stream().count()).isEqualTo(1L);
-		assertThat(((Cache<Long,String>)cache.unwrap(Cache.class)).stream().anyMatch(e -> e.getKey().equals(0L))).isTrue();
-	}
+    @Test
+    public void shouldStream() throws Exception {
+        assertThat(cache.unwrap(SCache.class).stream().count()).isEqualTo(0L);
+        cache.put(0L, "foo");
+        assertThat(cache.unwrap(SCache.class).stream().count()).isEqualTo(1L);
+        assertThat(((SCache<Long, String>) cache.unwrap(SCache.class)).stream().anyMatch(e -> e.getKey().equals(0L))).isTrue();
+    }
 
     @Test
     public void testRemoveAll() throws Exception {
@@ -150,28 +152,28 @@ public class CacheTest {
         Set<Long> keys = new HashSet<>();
         keys.add(0L);
         cache.removeAll(keys);
-        assertThat(cache).containsExactly(new Entry<>(1L, "one"));
+        assertThat(cache).containsExactly(new SEntry<>(1L, "one"));
     }
 
     @Test
-	public void shouldPutIfAbsent() throws Exception {
-	   	cache.put(0L, "foo");
-		assertThat(cache.get(0L)).isEqualTo("foo");
-		assertThat(cache.putIfAbsent(0L, "bar")).isFalse();
-		assertThat(cache.putIfAbsent(1L, "bar")).isTrue();
-		assertThat(cache.get(0L)).isEqualTo("foo");
-		assertThat(cache.get(1L)).isEqualTo("bar");
-	}
+    public void shouldPutIfAbsent() throws Exception {
+        cache.put(0L, "foo");
+        assertThat(cache.get(0L)).isEqualTo("foo");
+        assertThat(cache.putIfAbsent(0L, "bar")).isFalse();
+        assertThat(cache.putIfAbsent(1L, "bar")).isTrue();
+        assertThat(cache.get(0L)).isEqualTo("foo");
+        assertThat(cache.get(1L)).isEqualTo("bar");
+    }
 
-	@Test
-	public void shouldRemove() throws Exception {
-		cache.put(0L, "foo");
-		assertThat(cache.containsKey(0L)).isTrue();
-		assertThat(cache.remove(0L)).isTrue();
-		assertThat(cache.containsKey(0L)).isFalse();
+    @Test
+    public void shouldRemove() throws Exception {
+        cache.put(0L, "foo");
+        assertThat(cache.containsKey(0L)).isTrue();
+        assertThat(cache.remove(0L)).isTrue();
+        assertThat(cache.containsKey(0L)).isFalse();
 
         assertThat(cache.remove(1L)).isFalse();
-	}
+    }
 
     @Test
     public void testGetAndReplace() throws Exception {

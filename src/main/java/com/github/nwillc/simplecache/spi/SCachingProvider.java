@@ -14,22 +14,24 @@
  *    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.github.nwillc.simplecache;
+package com.github.nwillc.simplecache.spi;
+
+import com.github.nwillc.simplecache.SCacheManager;
 
 import javax.cache.CacheManager;
 import javax.cache.configuration.OptionalFeature;
 import java.net.URI;
 import java.util.Properties;
 
-public class CachingProvider implements javax.cache.spi.CachingProvider {
+public class SCachingProvider implements javax.cache.spi.CachingProvider {
     private final Properties properties = new Properties();
 
-    public CachingProvider() {
+    public SCachingProvider() {
     }
 
     @Override
     public javax.cache.CacheManager getCacheManager(URI uri, ClassLoader classLoader, Properties properties) {
-       throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -54,7 +56,7 @@ public class CachingProvider implements javax.cache.spi.CachingProvider {
 
     @Override
     public CacheManager getCacheManager() {
-        return new com.github.nwillc.simplecache.CacheManager();
+        return new SCacheManager();
     }
 
     @Override

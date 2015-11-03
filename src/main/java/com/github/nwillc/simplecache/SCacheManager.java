@@ -16,6 +16,8 @@
 
 package com.github.nwillc.simplecache;
 
+import com.github.nwillc.simplecache.spi.SCachingProvider;
+
 import javax.cache.Cache;
 import javax.cache.configuration.Configuration;
 import java.net.URI;
@@ -23,13 +25,13 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class CacheManager implements javax.cache.CacheManager {
+public class SCacheManager implements javax.cache.CacheManager {
     private final Map<String, Cache> cacheMap = new ConcurrentHashMap<>();
     private final Properties properties = new Properties();
 
     @Override
     public javax.cache.spi.CachingProvider getCachingProvider() {
-        return new CachingProvider();
+        return new SCachingProvider();
     }
 
     @Override
@@ -49,7 +51,7 @@ public class CacheManager implements javax.cache.CacheManager {
 
     @Override
     public <K, V, C extends Configuration<K, V>> javax.cache.Cache<K, V> createCache(String cacheName, C configuration) throws IllegalArgumentException {
-        Cache<K,V> cache = new com.github.nwillc.simplecache.Cache<>(this, cacheName, configuration);
+        Cache<K, V> cache = new SCache<>(this, cacheName, configuration);
         cacheMap.put(cacheName, cache);
         return cache;
     }
@@ -96,10 +98,10 @@ public class CacheManager implements javax.cache.CacheManager {
 
     @Override
     public <T> T unwrap(Class<T> clazz) {
-        if (!clazz.equals(CacheManager.class)) {
-            throw new IllegalArgumentException();
+        if (clazz.isAssignableFrom(this.getClass())) {
+            return clazz.cast(this);
         }
 
-        return (T)this;
+        throw new IllegalArgumentException();
     }
 }

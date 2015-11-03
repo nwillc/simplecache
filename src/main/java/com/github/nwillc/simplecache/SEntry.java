@@ -20,22 +20,23 @@ import java.util.AbstractMap;
 import java.util.Map;
 
 
-public class Entry<K,V> extends AbstractMap.SimpleEntry<K,V> implements javax.cache.Cache.Entry<K,V> {
+public class SEntry<K, V> extends AbstractMap.SimpleEntry<K, V> implements javax.cache.Cache.Entry<K, V> {
 
-    public Entry(Map.Entry<? extends K, ? extends V> entry) {
+    public SEntry(Map.Entry<? extends K, ? extends V> entry) {
         super(entry);
     }
 
-    public Entry(K key, V value) {
-		super(key, value);
-	}
+    public SEntry(K key, V value) {
+        super(key, value);
+    }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T> T unwrap(Class<T> clazz) {
-        if (!clazz.equals(this.getClass())) {
-            throw new IllegalArgumentException();
+        if (clazz.isAssignableFrom(this.getClass())) {
+            return clazz.cast(this);
         }
-        return (T)this;
+
+        throw new IllegalArgumentException();
     }
 }
