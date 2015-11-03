@@ -19,11 +19,7 @@ package com.github.nwillc.simplecache;
 import org.junit.Before;
 import org.junit.Test;
 
-import javax.cache.*;
-import javax.cache.spi.*;
-
 import java.util.Properties;
-import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;

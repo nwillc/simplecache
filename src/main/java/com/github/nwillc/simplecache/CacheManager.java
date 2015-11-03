@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class CacheManager implements javax.cache.CacheManager {
     private final Map<String, Cache> cacheMap = new ConcurrentHashMap<>();
+    private final Properties properties = new Properties();
 
     @Override
     public javax.cache.spi.CachingProvider getCachingProvider() {
@@ -43,7 +44,7 @@ public class CacheManager implements javax.cache.CacheManager {
 
     @Override
     public Properties getProperties() {
-        return null;
+        return properties;
     }
 
     @Override
@@ -65,7 +66,7 @@ public class CacheManager implements javax.cache.CacheManager {
 
     @Override
     public Iterable<String> getCacheNames() {
-        return null;
+        return cacheMap.keySet();
     }
 
     @Override
@@ -95,6 +96,10 @@ public class CacheManager implements javax.cache.CacheManager {
 
     @Override
     public <T> T unwrap(Class<T> clazz) {
-        return null;
+        if (!clazz.equals(CacheManager.class)) {
+            throw new IllegalArgumentException();
+        }
+
+        return (T)this;
     }
 }

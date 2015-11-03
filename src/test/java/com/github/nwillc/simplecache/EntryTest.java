@@ -18,7 +18,6 @@ package com.github.nwillc.simplecache;
 
 import org.junit.Test;
 
-import javax.cache.*;
 import javax.cache.Cache;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
