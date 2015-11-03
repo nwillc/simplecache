@@ -22,6 +22,8 @@ import java.net.URI;
 import java.util.Properties;
 
 public class CachingProvider implements javax.cache.spi.CachingProvider {
+    private final Properties properties = new Properties();
+
     public CachingProvider() {
     }
 
@@ -42,7 +44,7 @@ public class CachingProvider implements javax.cache.spi.CachingProvider {
 
     @Override
     public Properties getDefaultProperties() {
-        return null;
+        return properties;
     }
 
     @Override
