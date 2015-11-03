@@ -1,6 +1,7 @@
 # simplecache
-A simple JSR 107 inspired cache. Designed it be basically signature compatible with 
-JSR 107 but to be an in process cache and to have some JDK 8 twists.
+This is a limited JSR 107 implementation backed by a ConcurrentHashMap.  The goal was to provide JSR 107 
+compatibility with a tiny in JVM cache.  Basically this is only useful to front things like slow out of process
+requests.
 
 -----
 [![ISC License](http://shields-nwillc.rhcloud.com/shield/tldrlegal?package=ISC)](http://shields-nwillc.rhcloud.com/homepage/tldrlegal?package=ISC)
