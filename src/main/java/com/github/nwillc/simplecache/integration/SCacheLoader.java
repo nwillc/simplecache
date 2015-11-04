@@ -21,7 +21,6 @@ import javax.cache.integration.CacheLoaderException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import static java.util.stream.StreamSupport.stream;
 
@@ -39,6 +38,7 @@ public class SCacheLoader<K,V> implements CacheLoader<K,V> {
 
     @Override
     public Map<K, V> loadAll(Iterable<? extends K> keys) throws CacheLoaderException {
+        // Collectors.toMap has issues with some versions of jdk8 so doing this w/ forEach
         Map<K,V> map = new HashMap<>();
         stream(keys.spliterator(), false).forEach(k -> map.put(k, load(k)));
         return map;
