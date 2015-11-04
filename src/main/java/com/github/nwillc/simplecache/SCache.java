@@ -22,6 +22,7 @@ import javax.cache.CacheManager;
 import javax.cache.configuration.CacheEntryListenerConfiguration;
 import javax.cache.configuration.Configuration;
 import javax.cache.configuration.MutableConfiguration;
+import javax.cache.integration.CacheLoader;
 import javax.cache.integration.CompletionListener;
 import javax.cache.processor.EntryProcessor;
 import javax.cache.processor.EntryProcessorException;
@@ -39,16 +40,21 @@ public final class SCache<K, V> implements Cache<K, V> {
     private final CacheManager cacheManager;
     private final String name;
     private final MutableConfiguration<K, V> configuration;
+    private final CacheLoader<K,V> loader;
 
     @SuppressWarnings("unchecked")
     public SCache(CacheManager cacheManager, String name, Configuration<K, V> configuration) {
         this.cacheManager = cacheManager;
         this.name = name;
         this.configuration = new MutableConfiguration<>((MutableConfiguration) configuration);
+        loader = this.configuration.isReadThrough() ? this.configuration.getCacheLoaderFactory().create() : null;
     }
 
     @Override
     public V get(K key) {
+        if (configuration.isReadThrough() && !containsKey(key)) {
+           map.put(key,loader.load(key));
+        }
         return map.get(key);
     }
 
