@@ -18,6 +18,7 @@ package com.github.nwillc.simplecache.integration;
 
 import javax.cache.integration.CacheLoader;
 import javax.cache.integration.CacheLoaderException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -38,6 +39,8 @@ public class SCacheLoader<K,V> implements CacheLoader<K,V> {
 
     @Override
     public Map<K, V> loadAll(Iterable<? extends K> keys) throws CacheLoaderException {
-        return stream(keys.spliterator(), false).collect(Collectors.toConcurrentMap(k -> k, loader::apply));
+        Map<K,V> map = new HashMap<>();
+        stream(keys.spliterator(), false).forEach(k -> map.put(k, load(k)));
+        return map;
     }
 }
