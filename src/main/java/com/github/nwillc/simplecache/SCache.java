@@ -56,12 +56,8 @@ public final class SCache<K, V> implements Cache<K, V> {
     @Override
     public V get(K key) {
         V value = map.get(key);
-
-        if (value == null && configuration.isReadThrough()) {
-            value = loader.load(key);
-            if (value != null) {
-                map.put(key, value);
-            }
+        if (value == null) {
+            value = readThrough(key);
         }
         return value;
     }
@@ -85,9 +81,7 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public void put(K key, V value) {
-        if (writer != null) {
-            writer.write(new SEntry<>(key,value));
-        }
+        writeThrough(key,value);
         map.put(key, value);
     }
 
@@ -106,8 +100,8 @@ public final class SCache<K, V> implements Cache<K, V> {
     @Override
     public boolean putIfAbsent(K key, V value) {
         boolean wasPut = map.putIfAbsent(key, value) == null;
-        if (wasPut && writer != null) {
-            writer.write(new SEntry<>(key, value));
+        if (wasPut) {
+            writeThrough(key, value);
         }
         return wasPut;
     }
@@ -115,17 +109,19 @@ public final class SCache<K, V> implements Cache<K, V> {
     @Override
     public boolean remove(K key) {
         boolean wasRemoved = map.remove(key) != null;
-
-        if (wasRemoved && writer != null) {
-            writer.delete(key);
+        if (wasRemoved) {
+            removeThrough(key);
         }
-        
         return wasRemoved;
     }
 
     @Override
     public boolean remove(K key, V oldValue) {
-        return map.remove(key, oldValue);
+        boolean wasRemoved = map.remove(key, oldValue);
+        if (wasRemoved) {
+            removeThrough(key);
+        }
+        return wasRemoved;
     }
 
     @Override
@@ -138,15 +134,19 @@ public final class SCache<K, V> implements Cache<K, V> {
     @Override
     public boolean replace(K key, V oldValue, V newValue) {
         boolean wasPut = map.replace(key, oldValue, newValue);
-        if (wasPut && writer != null) {
-            writer.write(new SEntry<>(key, newValue));
+        if (wasPut) {
+           writeThrough(key, newValue);
         }
         return wasPut;
     }
 
     @Override
     public boolean replace(K key, V value) {
-        return map.replace(key, value) != null;
+        boolean wasPut = map.replace(key, value) != null;
+        if (wasPut) {
+            writeThrough(key,value);
+        }
+        return wasPut;
     }
 
     @Override
@@ -234,5 +234,34 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     public Stream<Entry<K, V>> stream() {
         return map.entrySet().stream().map(e -> (Entry) new SEntry<>(e));
+    }
+
+    private V readThrough(K key) {
+        if (loader == null) {
+            return null;
+        }
+
+        V value = loader.load(key);
+        if (value != null) {
+            map.put(key, value);
+        }
+
+        return value;
+    }
+
+    private void writeThrough(K key, V value) {
+        if (writer == null) {
+            return;
+        }
+
+        writer.write(new SEntry<>(key, value));
+    }
+
+    private void removeThrough(K key) {
+        if (writer == null) {
+            return;
+        }
+
+        writer.delete(key);
     }
 }

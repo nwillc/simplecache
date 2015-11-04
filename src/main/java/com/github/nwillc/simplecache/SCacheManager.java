@@ -63,6 +63,7 @@ public class SCacheManager implements CacheManager {
         return getCache(cacheName);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <K, V> Cache<K, V> getCache(String cacheName) {
         return cacheMap.get(cacheName);
