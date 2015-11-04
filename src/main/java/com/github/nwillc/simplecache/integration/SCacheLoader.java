@@ -38,6 +38,6 @@ public class SCacheLoader<K,V> implements CacheLoader<K,V> {
 
     @Override
     public Map<K, V> loadAll(Iterable<? extends K> keys) throws CacheLoaderException {
-        return stream(keys.spliterator(), false).collect(Collectors.toMap(k -> k, loader::apply));
+        return stream(keys.spliterator(), false).collect(Collectors.toConcurrentMap(k -> k, loader::apply));
     }
 }
