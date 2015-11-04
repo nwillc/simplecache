@@ -23,9 +23,12 @@ import org.junit.Test;
 import javax.cache.Cache;
 import javax.cache.CacheManager;
 import javax.cache.Caching;
+import javax.cache.configuration.Configuration;
 import javax.cache.configuration.MutableConfiguration;
 import javax.cache.spi.CachingProvider;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -191,4 +194,83 @@ public class SCacheTest {
         assertThat(cache.getAndReplace(0L, "zero")).isNull();
         assertThat(cache.get(0L)).isNull();
     }
+
+    @Test
+    public void testConfigurationFail() throws Exception {
+        assertThatThrownBy(() -> cache.getConfiguration(OtherConfig.class)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void testGetAndPut() throws Exception {
+        cache.put(0L,"foo");
+        assertThat(cache.getAndPut(0L,"0")).isEqualTo("foo");
+        assertThat(cache.get(0L)).isEqualTo("0");
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testPutAll() throws Exception {
+        Map<Long,String> map = new HashMap<>();
+        map.put(0L, "0");
+        map.put(1L, "1");
+        assertThat(cache).isEmpty();
+        cache.putAll(map);
+        assertThat(cache).containsExactly(new SEntry<>(0L,"0"), new SEntry<>(1L,"1"));
+    }
+
+    @Test
+    public void testGetAndRemove() throws Exception {
+        cache.put(0L, "foo");
+        String value = cache.getAndRemove(0L);
+        assertThat(value).isEqualTo("foo");
+        assertThat(cache.get(0L)).isNull();
+    }
+
+    @Test
+    public void testRemove() throws Exception {
+        cache.put(0L, "foo");
+        assertThat(cache.remove(0L,"bar")).isFalse();
+        assertThat(cache.get(0L)).isEqualTo("foo");
+        assertThat(cache.remove(0L, "foo")).isTrue();
+        assertThat(cache.get(0L)).isNull();
+    }
+
+    @Test
+    public void testReplace() throws Exception {
+        cache.put(0L, "foo");
+        assertThat(cache.replace(0L,"bar")).isTrue();
+        assertThat(cache.get(0L)).isEqualTo("bar");
+    }
+
+    @Test
+    public void testReplaceFail() throws Exception {
+        assertThat(cache.replace(0L,"foo")).isFalse();
+        assertThat(cache.get(0L)).isNull();
+    }
+
+    @Test
+    public void testReplaceWithValue() throws Exception {
+        cache.put(0L,"foo");
+        assertThat(cache.replace(0L, "bar", "baz")).isFalse();
+        assertThat(cache.get(0L)).isEqualTo("foo");
+        assertThat(cache.replace(0L, "foo", "bar")).isTrue();
+        assertThat(cache.get(0L)).isEqualTo("bar");
+    }
+
+    static class OtherConfig implements Configuration<Long,String> {
+        @Override
+        public Class<Long> getKeyType() {
+            return null;
+        }
+
+        @Override
+        public Class<String> getValueType() {
+            return null;
+        }
+
+        @Override
+        public boolean isStoreByValue() {
+            return false;
+        }
+    };
 }

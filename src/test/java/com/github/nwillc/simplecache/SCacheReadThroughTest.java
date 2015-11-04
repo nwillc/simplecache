@@ -29,7 +29,9 @@ import javax.cache.configuration.Factory;
 import javax.cache.configuration.MutableConfiguration;
 import javax.cache.integration.CacheLoader;
 import javax.cache.spi.CachingProvider;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -39,8 +41,9 @@ import static org.assertj.core.data.MapEntry.entry;
 public class SCacheReadThroughTest {
     private static final String NAME = "hoard";
     private Cache<Long, String> cache;
+    private Map<Long,String> backingStore = new HashMap<>();
     private Factory<CacheLoader<Long,String>> factory =
-            (Factory<CacheLoader<Long, String>>) () -> new SCacheLoader<>(Object::toString);
+            (Factory<CacheLoader<Long, String>>) () -> new SCacheLoader<>(backingStore::get);
 
     @Before
     public void setUp() throws Exception {
@@ -60,13 +63,22 @@ public class SCacheReadThroughTest {
     @Test
     public void shouldReadThrough() throws Exception {
         assertThat(cache).isEmpty();
+        backingStore.put(0L,"0");
         String value = cache.get(0L);
         assertThat(value).isEqualTo("0");
     }
 
     @Test
-    public void shouldNotReadThrough() throws Exception {
+    public void testReadThroughFails() throws Exception {
         assertThat(cache).isEmpty();
+        assertThat(backingStore).isEmpty();
+        String value = cache.get(0L);
+        assertThat(value).isNull();
+    }
+
+    @Test
+    public void shouldNotReadThrough() throws Exception {
+        backingStore.put(0L, "0");
         cache.put(0L, "bar");
         String value = cache.get(0L);
         assertThat(value).isEqualTo("bar");
