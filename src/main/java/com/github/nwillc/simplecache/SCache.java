@@ -52,10 +52,15 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public V get(K key) {
-        if (configuration.isReadThrough() && !containsKey(key)) {
-           map.put(key,loader.load(key));
+        V value = map.get(key);
+
+        if (value == null && configuration.isReadThrough()) {
+            value = loader.load(key);
+            if (value != null) {
+                map.put(key, loader.load(key));
+            }
         }
-        return map.get(key);
+        return value;
     }
 
     @Override
