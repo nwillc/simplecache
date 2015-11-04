@@ -19,24 +19,25 @@ package com.github.nwillc.simplecache.integration;
 import javax.cache.integration.CacheLoader;
 import javax.cache.integration.CacheLoaderException;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.StreamSupport.stream;
 
 public class SCacheLoader<K,V> implements CacheLoader<K,V> {
-    private final SLoader<K,V> loader;
+    private final Function<K,V> loader;
 
-    public SCacheLoader(SLoader<K, V> loader) {
+    public SCacheLoader(Function<K, V> loader) {
         this.loader = loader;
     }
 
     @Override
     public V load(K key) throws CacheLoaderException {
-        return loader.load(key);
+        return loader.apply(key);
     }
 
     @Override
     public Map<K, V> loadAll(Iterable<? extends K> keys) throws CacheLoaderException {
-        return stream(keys.spliterator(), false).collect(Collectors.toMap(k -> k, loader::load));
+        return stream(keys.spliterator(), false).collect(Collectors.toMap(k -> k, loader::apply));
     }
 }
