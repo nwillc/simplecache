@@ -57,7 +57,7 @@ public final class SCache<K, V> implements Cache<K, V> {
         if (value == null && configuration.isReadThrough()) {
             value = loader.load(key);
             if (value != null) {
-                map.put(key, loader.load(key));
+                map.put(key, value);
             }
         }
         return value;
