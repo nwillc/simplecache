@@ -63,4 +63,12 @@ public class SCacheReadThroughTest {
         String value = cache.get(0L);
         assertThat(value).isEqualTo("0");
     }
+
+    @Test
+    public void shouldNotReadThrough() throws Exception {
+        assertThat(cache).isEmpty();
+        cache.put(0L, "bar");
+        String value = cache.get(0L);
+        assertThat(value).isEqualTo("bar");
+    }
 }

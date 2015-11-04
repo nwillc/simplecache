@@ -23,6 +23,7 @@ import javax.cache.configuration.CacheEntryListenerConfiguration;
 import javax.cache.configuration.Configuration;
 import javax.cache.configuration.MutableConfiguration;
 import javax.cache.integration.CacheLoader;
+import javax.cache.integration.CacheWriter;
 import javax.cache.integration.CompletionListener;
 import javax.cache.processor.EntryProcessor;
 import javax.cache.processor.EntryProcessorException;
@@ -41,6 +42,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     private final String name;
     private final MutableConfiguration<K, V> configuration;
     private final CacheLoader<K,V> loader;
+    private final CacheWriter<? super K,? super V> writer;
 
     @SuppressWarnings("unchecked")
     public SCache(CacheManager cacheManager, String name, Configuration<K, V> configuration) {
@@ -48,6 +50,7 @@ public final class SCache<K, V> implements Cache<K, V> {
         this.name = name;
         this.configuration = new MutableConfiguration<>((MutableConfiguration) configuration);
         loader = this.configuration.isReadThrough() ? this.configuration.getCacheLoaderFactory().create() : null;
+        writer = this.configuration.isWriteThrough() ? this.configuration.getCacheWriterFactory().create() : null;
     }
 
     @Override
@@ -82,6 +85,9 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public void put(K key, V value) {
+        if (writer != null) {
+            writer.write(new SEntry<>(key,value));
+        }
         map.put(key, value);
     }
 
@@ -99,12 +105,22 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public boolean putIfAbsent(K key, V value) {
-        return map.putIfAbsent(key, value) == null;
+        boolean wasPut = map.putIfAbsent(key, value) == null;
+        if (wasPut && writer != null) {
+            writer.write(new SEntry<>(key, value));
+        }
+        return wasPut;
     }
 
     @Override
     public boolean remove(K key) {
-        return map.remove(key) != null;
+        boolean wasRemoved = map.remove(key) != null;
+
+        if (wasRemoved && writer != null) {
+            writer.delete(key);
+        }
+        
+        return wasRemoved;
     }
 
     @Override
@@ -121,7 +137,11 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public boolean replace(K key, V oldValue, V newValue) {
-        return map.replace(key, oldValue, newValue);
+        boolean wasPut = map.replace(key, oldValue, newValue);
+        if (wasPut && writer != null) {
+            writer.write(new SEntry<>(key, newValue));
+        }
+        return wasPut;
     }
 
     @Override
