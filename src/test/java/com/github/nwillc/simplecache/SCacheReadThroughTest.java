@@ -39,12 +39,8 @@ import static org.assertj.core.data.MapEntry.entry;
 public class SCacheReadThroughTest {
     private static final String NAME = "hoard";
     private Cache<Long, String> cache;
-    private Factory<CacheLoader<Long,String>> factory = new Factory<CacheLoader<Long, String>>() {
-        @Override
-        public CacheLoader<Long, String> create() {
-            return new SCacheLoader<>(Object::toString);
-        }
-    };
+    private Factory<CacheLoader<Long,String>> factory =
+            (Factory<CacheLoader<Long, String>>) () -> new SCacheLoader<>(Object::toString);
 
     @Before
     public void setUp() throws Exception {
