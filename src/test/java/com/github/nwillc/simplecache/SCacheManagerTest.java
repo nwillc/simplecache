@@ -22,6 +22,7 @@ import org.junit.Test;
 
 import javax.cache.Cache;
 import javax.cache.CacheManager;
+import javax.cache.Caching;
 import javax.cache.configuration.MutableConfiguration;
 import javax.cache.spi.CachingProvider;
 import java.util.Properties;
@@ -36,7 +37,7 @@ public class SCacheManagerTest {
 
     @Before
     public void setUp() throws Exception {
-        cacheManager = new SCacheManager();
+        cacheManager = Caching.getCachingProvider().getCacheManager();
     }
 
     @Test

@@ -30,10 +30,15 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SCacheManager implements CacheManager {
     private final Map<String, Cache> cacheMap = new ConcurrentHashMap<>();
     private final Properties properties = new Properties();
+    private final CachingProvider cachingProvider;
+
+    public SCacheManager(CachingProvider cachingProvider) {
+        this.cachingProvider = cachingProvider;
+    }
 
     @Override
     public CachingProvider getCachingProvider() {
-        return new SCachingProvider();
+        return cachingProvider;
     }
 
     @Override

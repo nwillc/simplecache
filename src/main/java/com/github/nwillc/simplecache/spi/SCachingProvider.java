@@ -26,8 +26,10 @@ import java.util.Properties;
 
 public class SCachingProvider implements CachingProvider {
     private final Properties properties = new Properties();
+    private final CacheManager cacheManager;
 
     public SCachingProvider() {
+        cacheManager = new SCacheManager(this);
     }
 
     @Override
@@ -57,7 +59,7 @@ public class SCachingProvider implements CachingProvider {
 
     @Override
     public CacheManager getCacheManager() {
-        return new SCacheManager();
+        return cacheManager;
     }
 
     @Override

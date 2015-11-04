@@ -237,7 +237,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     }
 
     private V readThrough(K key) {
-        if (loader == null) {
+        if (loader == null || !configuration.isReadThrough()) {
             return null;
         }
 
@@ -250,7 +250,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     }
 
     private void writeThrough(K key, V value) {
-        if (writer == null) {
+        if (writer == null || !configuration.isWriteThrough()) {
             return;
         }
 
@@ -258,7 +258,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     }
 
     private void removeThrough(K key) {
-        if (writer == null) {
+        if (writer == null || !configuration.isWriteThrough()) {
             return;
         }
 
