@@ -50,7 +50,7 @@ public final class SCache<K, V> implements Cache<K, V> {
         this.cacheManager = cacheManager;
         this.name = name;
         this.configuration = new MutableConfiguration<>((MutableConfiguration) configuration);
-        loader = Optional.ofNullable( this.configuration.getCacheLoaderFactory() == null ?
+        loader = Optional.ofNullable(this.configuration.getCacheLoaderFactory() == null ?
                 null : this.configuration.getCacheLoaderFactory().create());
         writer = Optional.ofNullable(this.configuration.getCacheWriterFactory() == null ?
                 null : this.configuration.getCacheWriterFactory().create());
