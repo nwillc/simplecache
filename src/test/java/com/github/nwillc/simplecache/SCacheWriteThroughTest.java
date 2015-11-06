@@ -41,11 +41,12 @@ public class SCacheWriteThroughTest {
     private Map<Long,String> backingStore = new HashMap<>();
     private Factory<CacheWriter<Long,String>> factory =
             (Factory<CacheWriter<Long, String>>) () -> new SCacheWriter<>(backingStore::remove,e -> backingStore.put(e.getKey(), e.getValue()));
+    private CacheManager cacheManager;
 
     @Before
     public void setUp() throws Exception {
         CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
-        CacheManager cacheManager = cachingProvider.getCacheManager();
+        cacheManager = cachingProvider.getCacheManager();
         MutableConfiguration<Long,String> configuration = new MutableConfiguration<>();
         configuration.setWriteThrough(true);
         configuration.setCacheWriterFactory(factory);
@@ -77,5 +78,30 @@ public class SCacheWriteThroughTest {
         cache.remove(0L);
         assertThat(backingStore).isEmpty();
         assertThat(cache).isEmpty();
+    }
+
+    @Test
+    public void shouldShouldWriteThroughShutOff() throws Exception {
+        assertThat(backingStore).isEmpty();
+        cache.put(0L,"0");
+        assertThat(backingStore.get(0L)).isEqualTo("0");
+        cache.getConfiguration(MutableConfiguration.class).setWriteThrough(false);
+        cache.put(1L, "1");
+        assertThat(backingStore.get(1L)).isNull();
+        cache.remove(0L);
+        assertThat(cache.get(0L)).isNull();
+        assertThat(backingStore.get(0L)).isNotNull();
+    }
+
+    @Test
+    public void shouldHandleMissingFunctor() throws Exception {
+        MutableConfiguration<Long, String> mutableConfiguration = cache.getConfiguration(MutableConfiguration.class);
+        mutableConfiguration.setCacheWriterFactory(null);
+        cache = cacheManager.createCache(NAME + "broken", mutableConfiguration);
+        cache.put(0L,"0");
+        assertThat(backingStore.get(0L)).isNull();
+        assertThat(cache.get(0L)).isEqualTo("0");
+        cache.remove(0L);
+        assertThat(cache.get(0L)).isNull();
     }
 }

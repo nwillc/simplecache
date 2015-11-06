@@ -30,13 +30,9 @@ import javax.cache.configuration.MutableConfiguration;
 import javax.cache.integration.CacheLoader;
 import javax.cache.spi.CachingProvider;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.assertj.core.data.MapEntry.entry;
 
 public class SCacheReadThroughTest {
     private static final String NAME = "hoard";
@@ -44,11 +40,12 @@ public class SCacheReadThroughTest {
     private Map<Long,String> backingStore = new HashMap<>();
     private Factory<CacheLoader<Long,String>> factory =
             (Factory<CacheLoader<Long, String>>) () -> new SCacheLoader<>(backingStore::get);
+    private CacheManager cacheManager;
 
     @Before
     public void setUp() throws Exception {
         CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
-        CacheManager cacheManager = cachingProvider.getCacheManager();
+        cacheManager = cachingProvider.getCacheManager();
         MutableConfiguration<Long,String> configuration = new MutableConfiguration<>();
         configuration.setReadThrough(true);
         configuration.setCacheLoaderFactory(factory);
@@ -82,5 +79,23 @@ public class SCacheReadThroughTest {
         cache.put(0L, "bar");
         String value = cache.get(0L);
         assertThat(value).isEqualTo("bar");
+    }
+
+    @Test
+    public void shouldReadThroughShutOff() throws Exception {
+        backingStore.put(0L, "0");
+        assertThat(cache.get(0L)).isEqualTo("0");
+        cache.getConfiguration(MutableConfiguration.class).setReadThrough(false);
+        backingStore.put(1L, "1");
+        assertThat(cache.get(1L)).isNull();
+    }
+
+    @Test
+    public void shouldHandleNoFunctor() throws Exception {
+        MutableConfiguration<Long, String> mutableConfiguration = cache.getConfiguration(MutableConfiguration.class);
+        mutableConfiguration.setCacheLoaderFactory(null);
+        cache = cacheManager.createCache(NAME + "broken", mutableConfiguration);
+        backingStore.put(1L, "1");
+        assertThat(cache.get(1L)).isNull();
     }
 }

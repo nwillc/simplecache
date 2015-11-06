@@ -16,8 +16,6 @@
 
 package com.github.nwillc.simplecache;
 
-import com.github.nwillc.simplecache.spi.SCachingProvider;
-
 import javax.cache.Cache;
 import javax.cache.CacheManager;
 import javax.cache.configuration.Configuration;
