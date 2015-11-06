@@ -28,10 +28,7 @@ import javax.cache.integration.CompletionListener;
 import javax.cache.processor.EntryProcessor;
 import javax.cache.processor.EntryProcessorException;
 import javax.cache.processor.EntryProcessorResult;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -41,16 +38,18 @@ public final class SCache<K, V> implements Cache<K, V> {
     private final CacheManager cacheManager;
     private final String name;
     private final MutableConfiguration<K, V> configuration;
-    private final CacheLoader<K,V> loader;
-    private final CacheWriter<? super K,? super V> writer;
+    private final Optional<CacheLoader<K,V>> loader;
+    private final Optional<CacheWriter<? super K,? super V>> writer;
 
     @SuppressWarnings("unchecked")
     public SCache(CacheManager cacheManager, String name, Configuration<K, V> configuration) {
         this.cacheManager = cacheManager;
         this.name = name;
         this.configuration = new MutableConfiguration<>((MutableConfiguration) configuration);
-        loader = this.configuration.isReadThrough() ? this.configuration.getCacheLoaderFactory().create() : null;
-        writer = this.configuration.isWriteThrough() ? this.configuration.getCacheWriterFactory().create() : null;
+        loader = Optional.ofNullable( this.configuration.getCacheLoaderFactory() == null ?
+                null : this.configuration.getCacheLoaderFactory().create());
+        writer = Optional.ofNullable(this.configuration.getCacheWriterFactory() == null ?
+                null : this.configuration.getCacheWriterFactory().create());
     }
 
     @Override
@@ -237,11 +236,11 @@ public final class SCache<K, V> implements Cache<K, V> {
     }
 
     private V readThrough(K key) {
-        if (loader == null || !configuration.isReadThrough()) {
+        if (!(loader.isPresent() && configuration.isReadThrough())) {
             return null;
         }
 
-        V value = loader.load(key);
+        V value = loader.get().load(key);
         if (value != null) {
             map.put(key, value);
         }
@@ -250,18 +249,18 @@ public final class SCache<K, V> implements Cache<K, V> {
     }
 
     private void writeThrough(K key, V value) {
-        if (writer == null || !configuration.isWriteThrough()) {
+        if (!(writer.isPresent() && configuration.isWriteThrough())) {
             return;
         }
 
-        writer.write(new SEntry<>(key, value));
+        writer.get().write(new SEntry<>(key, value));
     }
 
     private void removeThrough(K key) {
-        if (writer == null || !configuration.isWriteThrough()) {
+        if (!(writer.isPresent() && configuration.isWriteThrough())) {
             return;
         }
 
-        writer.delete(key);
+        writer.get().delete(key);
     }
 }
