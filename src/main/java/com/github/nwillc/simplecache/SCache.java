@@ -58,9 +58,14 @@ public final class SCache<K, V> implements Cache<K, V> {
         V value = data.get(key);
         if (value == null) {
             value = readThrough(key);
-        } else {
-            expiry.get(key).accessed = System.currentTimeMillis();
         }
+        expiry.compute(key, (k,v) -> {
+           if (v == null) {
+               return new ExpiryData();
+           } else {
+              return v.access();
+           }
+        });
         return value;
     }
 
@@ -85,7 +90,13 @@ public final class SCache<K, V> implements Cache<K, V> {
     public void put(K key, V value) {
         writeThrough(key,value);
         data.put(key, value);
-        expiry.put(key, new ExpiryData());  // TODO this should be updated is preset
+        expiry.compute(key, (k,v) -> {
+            if (v == null) {
+                return new ExpiryData();
+            } else {
+                return v.update();
+            }
+        });
     }
 
     @Override
@@ -142,7 +153,7 @@ public final class SCache<K, V> implements Cache<K, V> {
         boolean wasPut = data.replace(key, oldValue, newValue);
         if (wasPut) {
            writeThrough(key, newValue);
-            // TODO expiry update
+           expiry.get(key).update();
         }
         return wasPut;
     }
@@ -152,15 +163,15 @@ public final class SCache<K, V> implements Cache<K, V> {
         boolean wasPut = data.replace(key, value) != null;
         if (wasPut) {
             writeThrough(key,value);
-            // TODO expiry update
+            expiry.get(key).update();
         }
         return wasPut;
     }
 
     @Override
     public V getAndReplace(K key, V value) {
+        expiry.computeIfPresent(key, (k,v) -> v.update());
         return data.replace(key, value);
-        // TODO expiry
     }
 
     @Override
@@ -281,8 +292,18 @@ public final class SCache<K, V> implements Cache<K, V> {
         long accessed;
         long updated;
 
-        public ExpiryData() {
+        private ExpiryData() {
             created = System.currentTimeMillis();
+        }
+
+        private ExpiryData access() {
+            accessed = System.currentTimeMillis();
+            return this;
+        }
+
+        private ExpiryData update() {
+            updated = System.currentTimeMillis();
+            return this;
         }
     }
 }
