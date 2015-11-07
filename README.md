@@ -4,7 +4,8 @@ management, statistics, expiry, and doesn't implement the annotations. Why did I
 I wanted something even simpler and cleaner then the reference implementation. Read-through and write-through are
 implemented synchronously. Basically this is only useful to front things like slow out of process requests.
 
-Currently this package only includes six classes, depends only on the javax.cache-api artifact, and builds to around 15k.
+Currently this package only includes around a half dozen classes, depends only on the javax.cache-api artifact,
+and builds to an under 15K jar.
 
 -----
 [![ISC License](http://shields-nwillc.rhcloud.com/shield/tldrlegal?package=ISC)](http://shields-nwillc.rhcloud.com/homepage/tldrlegal?package=ISC)

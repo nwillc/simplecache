@@ -35,7 +35,7 @@ import java.util.stream.Stream;
 
 public final class SCache<K, V> implements Cache<K, V> {
     private final Map<K, V> data = new ConcurrentHashMap<>();
-    private final Map<K, ExpiryData> expiry = new ConcurrentHashMap<>();
+    final Map<K, ExpiryData> expiry = new ConcurrentHashMap<>();
     private final CacheManager cacheManager;
     private final String name;
     private final MutableConfiguration<K, V> configuration;
@@ -271,25 +271,5 @@ public final class SCache<K, V> implements Cache<K, V> {
         }
 
         writer.get().delete(key);
-    }
-
-    private static class ExpiryData {
-        long created;
-        long accessed;
-        long updated;
-
-        private ExpiryData() {
-            created = System.currentTimeMillis();
-        }
-
-        private ExpiryData access() {
-            accessed = System.currentTimeMillis();
-            return this;
-        }
-
-        private ExpiryData update() {
-            updated = System.currentTimeMillis();
-            return this;
-        }
     }
 }
