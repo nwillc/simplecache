@@ -28,17 +28,14 @@ import javax.cache.integration.CompletionListener;
 import javax.cache.processor.EntryProcessor;
 import javax.cache.processor.EntryProcessorException;
 import javax.cache.processor.EntryProcessorResult;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class SCache<K, V> implements Cache<K, V> {
-    private final Map<K, V> map = new ConcurrentHashMap<>();
+    private final Map<K, V> data = new ConcurrentHashMap<>();
+    private final Map<K, ExpiryData> expiry = new ConcurrentHashMap<>();
     private final CacheManager cacheManager;
     private final String name;
     private final MutableConfiguration<K, V> configuration;
@@ -58,9 +55,11 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public V get(K key) {
-        V value = map.get(key);
+        V value = data.get(key);
         if (value == null) {
             value = readThrough(key);
+        } else {
+            expiry.get(key).accessed = System.currentTimeMillis();
         }
         return value;
     }
@@ -68,13 +67,13 @@ public final class SCache<K, V> implements Cache<K, V> {
     @Override
     public Map<K, V> getAll(Set<? extends K> keys) {
         Map<K, V> retMap = new HashMap<>();
-        keys.stream().forEach(k -> map.computeIfPresent(k, retMap::put));
+        keys.stream().forEach(k -> data.computeIfPresent(k, retMap::put));
         return retMap;
     }
 
     @Override
     public boolean containsKey(K key) {
-        return map.containsKey(key);
+        return data.containsKey(key);
     }
 
     @Override
@@ -85,7 +84,8 @@ public final class SCache<K, V> implements Cache<K, V> {
     @Override
     public void put(K key, V value) {
         writeThrough(key,value);
-        map.put(key, value);
+        data.put(key, value);
+        expiry.put(key, new ExpiryData());  // TODO this should be updated is preset
     }
 
     @Override
@@ -102,27 +102,30 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public boolean putIfAbsent(K key, V value) {
-        boolean wasPut = map.putIfAbsent(key, value) == null;
+        boolean wasPut = data.putIfAbsent(key, value) == null;
         if (wasPut) {
             writeThrough(key, value);
+            expiry.put(key, new ExpiryData());
         }
         return wasPut;
     }
 
     @Override
     public boolean remove(K key) {
-        boolean wasRemoved = map.remove(key) != null;
+        boolean wasRemoved = data.remove(key) != null;
         if (wasRemoved) {
             removeThrough(key);
+            expiry.remove(key);
         }
         return wasRemoved;
     }
 
     @Override
     public boolean remove(K key, V oldValue) {
-        boolean wasRemoved = map.remove(key, oldValue);
+        boolean wasRemoved = data.remove(key, oldValue);
         if (wasRemoved) {
             removeThrough(key);
+            expiry.remove(key);
         }
         return wasRemoved;
     }
@@ -136,25 +139,28 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public boolean replace(K key, V oldValue, V newValue) {
-        boolean wasPut = map.replace(key, oldValue, newValue);
+        boolean wasPut = data.replace(key, oldValue, newValue);
         if (wasPut) {
            writeThrough(key, newValue);
+            // TODO expiry update
         }
         return wasPut;
     }
 
     @Override
     public boolean replace(K key, V value) {
-        boolean wasPut = map.replace(key, value) != null;
+        boolean wasPut = data.replace(key, value) != null;
         if (wasPut) {
             writeThrough(key,value);
+            // TODO expiry update
         }
         return wasPut;
     }
 
     @Override
     public V getAndReplace(K key, V value) {
-        return map.replace(key, value);
+        return data.replace(key, value);
+        // TODO expiry
     }
 
     @Override
@@ -164,12 +170,13 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public void removeAll() {
-        removeAll(map.keySet());
+        removeAll(data.keySet());
     }
 
     @Override
     public void clear() {
-        map.clear();
+        data.clear();
+        expiry.clear();
     }
 
     @Override
@@ -236,7 +243,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     }
 
     public Stream<Entry<K, V>> stream() {
-        return map.entrySet().stream().map(e -> (Entry) new SEntry<>(e));
+        return data.entrySet().stream().map(e -> (Entry) new SEntry<>(e));
     }
 
     private V readThrough(K key) {
@@ -246,7 +253,8 @@ public final class SCache<K, V> implements Cache<K, V> {
 
         V value = loader.get().load(key);
         if (value != null) {
-            map.put(key, value);
+            data.put(key, value);
+            expiry.put(key, new ExpiryData());
         }
 
         return value;
@@ -266,5 +274,15 @@ public final class SCache<K, V> implements Cache<K, V> {
         }
 
         writer.get().delete(key);
+    }
+
+    private static class ExpiryData {
+        long created;
+        long accessed;
+        long updated;
+
+        public ExpiryData() {
+            created = System.currentTimeMillis();
+        }
     }
 }
