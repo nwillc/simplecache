@@ -1,6 +1,6 @@
 # simplecache
 This is an incomplete JSR 107 implementation. It's backed by a store-by-reference ConcurrentHashMap, doesn't offer 
-management, statistics, expiry, and doesn't implement the annotations. Why did I bother? It was mostly an exercise.
+management, statistics, and doesn't implement the annotations. Why did I bother? It was mostly an exercise.
 I wanted something even simpler and cleaner then the reference implementation. Read-through and write-through are
 implemented synchronously. Basically this is only useful to front things like slow out of process requests.
 
