@@ -35,7 +35,7 @@ import java.util.stream.Stream;
 
 public final class SCache<K, V> implements Cache<K, V> {
     private final Map<K, V> data = new ConcurrentHashMap<>();
-    final Map<K, ExpiryData> expiry = new ConcurrentHashMap<>();
+    final Map<K, SExpiryData> expiry = new ConcurrentHashMap<>();
     private final CacheManager cacheManager;
     private final String name;
     private final MutableConfiguration<K, V> configuration;
@@ -59,7 +59,7 @@ public final class SCache<K, V> implements Cache<K, V> {
         if (value == null) {
             value = readThrough(key);
         }
-        expiry.compute(key, (k,v) -> v == null ? new ExpiryData() : v.access());
+        expiry.compute(key, (k,v) -> v == null ? new SExpiryData() : v.access());
         return value;
     }
 
@@ -89,7 +89,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     public V getAndPut(K key, V value) {
         V old = data.put(key, value);
         writeThrough(key,value);
-        expiry.compute(key, (k,v) -> v == null ? new ExpiryData() : v.update());
+        expiry.compute(key, (k,v) -> v == null ? new SExpiryData() : v.update());
         return old;
     }
 
@@ -103,7 +103,7 @@ public final class SCache<K, V> implements Cache<K, V> {
         boolean wasPut = data.putIfAbsent(key, value) == null;
         if (wasPut) {
             writeThrough(key, value);
-            expiry.put(key, new ExpiryData());
+            expiry.put(key, new SExpiryData());
         }
         return wasPut;
     }
