@@ -55,6 +55,7 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public V get(K key) {
+        expiryCheck(key);
         V value = data.get(key);
         if (value == null) {
             value = readThrough(key);
@@ -87,6 +88,7 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public V getAndPut(K key, V value) {
+        expiryCheck(key);
         V old = data.put(key, value);
         writeThrough(key,value);
         expiry.compute(key, (k,v) -> v == null ? new SExpiryData() : v.update());
@@ -157,6 +159,7 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public V getAndReplace(K key, V value) {
+        expiryCheck(key);
         expiry.computeIfPresent(key, (k,v) -> v.update());
         return data.replace(key, value);
     }
@@ -271,5 +274,13 @@ public final class SCache<K, V> implements Cache<K, V> {
         }
 
         writer.get().delete(key);
+    }
+
+    private void expiryCheck(K key) {
+        SExpiryData expiryData = expiry.get(key);
+        if (expiryData != null && expiryData.expired()) {
+            expiry.remove(key);
+            data.remove(key);
+        }
     }
 }
