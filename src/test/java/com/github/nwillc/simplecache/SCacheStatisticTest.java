@@ -129,7 +129,7 @@ public class SCacheStatisticTest {
         cache.put(0L,"foo");
         cache.get(0L);
         assertThat(statistics.getCacheEvictions()).isEqualTo(0L);
-        clock.set(TimeUnit.MINUTES.toMillis(2));
+        clock.set(TimeUnit.MINUTES.toNanos(2));
         cache.get(0L);
         assertThat(statistics.getCacheEvictions()).isEqualTo(1L);
     }

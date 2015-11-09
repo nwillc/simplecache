@@ -273,7 +273,7 @@ public class SCacheTest {
         sCache.setClock(time::get);
         sCache.put(0L, "foo");
         assertThat(sCache.get(0L)).isEqualTo("foo");
-        time.set(TimeUnit.SECONDS.toMillis(10));
+        time.set(TimeUnit.SECONDS.toNanos(10));
         assertThat(sCache.get(0L)).isNull();
     }
 

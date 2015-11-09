@@ -99,8 +99,8 @@ class SExpiryData {
                     last = time;
                 }
             }
-            long millisAgo = now - last;
-            return millisAgo > duration.getTimeUnit().toMillis(duration.getDurationAmount());
+            long delta = now - last;
+            return delta > duration.getTimeUnit().toNanos(duration.getDurationAmount());
         }
 
     }
