@@ -21,22 +21,23 @@ import org.junit.Test;
 
 import javax.cache.expiry.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 public class SExpiryDataTest {
-    private TimeSource clock;
+    private AtomicLong clock;
     private SExpiryData expiryData;
 
     @Before
     public void setUp() throws Exception {
-        clock = new TimeSource();
+        clock = new AtomicLong(0L);
         expiryData = new SExpiryData(clock::get);
     }
 
     @Test
     public void testCreated() throws Exception {
-        clock.time = 5L;
+        clock.set(5L);
         expiryData = new SExpiryData(clock::get);
         assertThat(expiryData.created).isEqualTo(5L);
         assertThat(expiryData.accessed).isEqualTo(SExpiryData.NEVER);
@@ -45,16 +46,16 @@ public class SExpiryDataTest {
 
     @Test
     public void testAccess() throws Exception {
-        assertThat(expiryData.created).isEqualTo(TimeSource.GENESIS);
-        clock.time = 2L;
+        assertThat(expiryData.created).isEqualTo(0L);
+        clock.set(2L);
         assertThat(expiryData.access().accessed).isEqualTo(2L);
         assertThat(expiryData.updated).isEqualTo(SExpiryData.NEVER);
     }
 
     @Test
     public void testUpdate() throws Exception {
-        assertThat(expiryData.created).isEqualTo(TimeSource.GENESIS);
-        clock.time = 2L;
+        assertThat(expiryData.created).isEqualTo(0L);
+        clock.set(2L);
         assertThat(expiryData.update().updated).isEqualTo(2L);
         assertThat(expiryData.accessed).isEqualTo(SExpiryData.NEVER);
     }
@@ -62,7 +63,7 @@ public class SExpiryDataTest {
     @Test
     public void testEternalExpiration() throws Exception {
         expiryData = new SExpiryData(clock::get, new EternalExpiryPolicy());
-        clock.time = TimeUnit.DAYS.toMillis(1000);
+        clock.set(TimeUnit.DAYS.toMillis(1000));
         assertThat(expiryData.expired()).isFalse();
     }
 
@@ -70,9 +71,9 @@ public class SExpiryDataTest {
     public void testCreationExpiration() throws Exception {
         ExpiryPolicy expiryPolicy = new CreatedExpiryPolicy(Duration.ONE_MINUTE);
         expiryData = new SExpiryData(clock::get, expiryPolicy);
-        clock.time = TimeUnit.SECONDS.toMillis(30);
+        clock.set(TimeUnit.SECONDS.toMillis(30));
         assertThat(expiryData.expired()).isFalse();
-        clock.time = TimeUnit.MINUTES.toMillis(2);
+        clock.set(TimeUnit.MINUTES.toMillis(2));
         assertThat(expiryData.expired()).isTrue();
     }
 
@@ -80,10 +81,10 @@ public class SExpiryDataTest {
     public void testAccessExpiration() throws Exception {
         ExpiryPolicy expiryPolicy = new AccessedExpiryPolicy(Duration.ONE_MINUTE);
         expiryData = new SExpiryData(clock::get, expiryPolicy);
-        clock.time = 0L;
+        clock.set(0L);
         expiryData.access();
         assertThat(expiryData.expired()).isFalse();
-        clock.time = TimeUnit.MINUTES.toMillis(2);
+        clock.set(TimeUnit.MINUTES.toMillis(2));
         assertThat(expiryData.expired()).isTrue();
     }
 
@@ -91,9 +92,9 @@ public class SExpiryDataTest {
     public void testModifiedExpirationCreation() throws Exception {
         ExpiryPolicy expiryPolicy = new ModifiedExpiryPolicy(Duration.ONE_MINUTE);
         expiryData = new SExpiryData(clock::get, expiryPolicy);
-        clock.time = TimeUnit.SECONDS.toMillis(30);
+        clock.set(TimeUnit.SECONDS.toMillis(30));
         assertThat(expiryData.expired()).isFalse();
-        clock.time = TimeUnit.MINUTES.toMillis(2);
+        clock.set(TimeUnit.MINUTES.toMillis(2));
         assertThat(expiryData.expired()).isTrue();
     }
 
@@ -101,10 +102,10 @@ public class SExpiryDataTest {
     public void testModifiedExpirationUpdate() throws Exception {
         ExpiryPolicy expiryPolicy = new ModifiedExpiryPolicy(Duration.ONE_MINUTE);
         expiryData = new SExpiryData(clock::get, expiryPolicy);
-        clock.time = TimeUnit.SECONDS.toMillis(30);
+        clock.set(TimeUnit.SECONDS.toMillis(30));
         expiryData.update();
         assertThat(expiryData.expired()).isFalse();
-        clock.time = TimeUnit.MINUTES.toMillis(2);
+        clock.set(TimeUnit.MINUTES.toMillis(2));
         assertThat(expiryData.expired()).isTrue();
         expiryData.update();
         assertThat(expiryData.expired()).isFalse();
@@ -114,9 +115,9 @@ public class SExpiryDataTest {
     public void testTouchedExpirationCreation() throws Exception {
         ExpiryPolicy expiryPolicy = new TouchedExpiryPolicy(Duration.ONE_MINUTE);
         expiryData = new SExpiryData(clock::get, expiryPolicy);
-        clock.time = TimeUnit.SECONDS.toMillis(30);
+        clock.set(TimeUnit.SECONDS.toMillis(30));
         assertThat(expiryData.expired()).isFalse();
-        clock.time = TimeUnit.MINUTES.toMillis(2);
+        clock.set(TimeUnit.MINUTES.toMillis(2));
         assertThat(expiryData.expired()).isTrue();
     }
 
@@ -124,10 +125,10 @@ public class SExpiryDataTest {
     public void testTouchedExpirationUpdate() throws Exception {
         ExpiryPolicy expiryPolicy = new TouchedExpiryPolicy(Duration.ONE_MINUTE);
         expiryData = new SExpiryData(clock::get, expiryPolicy);
-        clock.time = TimeUnit.SECONDS.toMillis(30);
+        clock.set(TimeUnit.SECONDS.toMillis(30));
         expiryData.update();
         assertThat(expiryData.expired()).isFalse();
-        clock.time = TimeUnit.MINUTES.toMillis(2);
+        clock.set(TimeUnit.MINUTES.toMillis(2));
         assertThat(expiryData.expired()).isTrue();
         expiryData.update();
         assertThat(expiryData.expired()).isFalse();
@@ -137,22 +138,13 @@ public class SExpiryDataTest {
     public void testTouchedExpirationAccess() throws Exception {
         ExpiryPolicy expiryPolicy = new TouchedExpiryPolicy(Duration.ONE_MINUTE);
         expiryData = new SExpiryData(clock::get, expiryPolicy);
-        clock.time = TimeUnit.SECONDS.toMillis(30);
+        clock.set(TimeUnit.SECONDS.toMillis(30));
         expiryData.access();
         assertThat(expiryData.expired()).isFalse();
-        clock.time = TimeUnit.MINUTES.toMillis(2);
+        clock.set(TimeUnit.MINUTES.toMillis(2));
         assertThat(expiryData.expired()).isTrue();
         expiryData.access();
         assertThat(expiryData.expired()).isFalse();
     }
-
-
-    private class TimeSource {
-        static final long GENESIS = 0L;
-        long time = GENESIS;
-
-        Long get() {
-            return time;
-        }
-    }
+    
 }

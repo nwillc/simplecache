@@ -25,11 +25,15 @@ import javax.cache.CacheManager;
 import javax.cache.Caching;
 import javax.cache.configuration.Configuration;
 import javax.cache.configuration.MutableConfiguration;
+import javax.cache.expiry.CreatedExpiryPolicy;
+import javax.cache.expiry.Duration;
 import javax.cache.spi.CachingProvider;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -255,6 +259,22 @@ public class SCacheTest {
         assertThat(cache.get(0L)).isEqualTo("foo");
         assertThat(cache.replace(0L, "foo", "bar")).isTrue();
         assertThat(cache.get(0L)).isEqualTo("bar");
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void shouldExpire() throws Exception {
+        MutableConfiguration<Long,String> conf = new MutableConfiguration<>();
+        conf.setExpiryPolicyFactory(() -> new CreatedExpiryPolicy(new Duration(TimeUnit.SECONDS,5)));
+        cache = cacheManager.createCache(NAME + "-expiry", conf);
+        SCache<Long,String> sCache = cache.unwrap(SCache.class);
+        assertThat(sCache).isNotNull();
+        final AtomicLong time = new AtomicLong(0L);
+        sCache.setClock(time::get);
+        sCache.put(0L, "foo");
+        assertThat(sCache.get(0L)).isEqualTo("foo");
+        time.set(TimeUnit.SECONDS.toMillis(10));
+        assertThat(sCache.get(0L)).isNull();
     }
 
     static class OtherConfig implements Configuration<Long,String> {

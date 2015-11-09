@@ -21,7 +21,9 @@ import javax.cache.Cache;
 import javax.cache.CacheManager;
 import javax.cache.configuration.CacheEntryListenerConfiguration;
 import javax.cache.configuration.Configuration;
+import javax.cache.configuration.Factory;
 import javax.cache.configuration.MutableConfiguration;
+import javax.cache.expiry.ExpiryPolicy;
 import javax.cache.integration.CacheLoader;
 import javax.cache.integration.CacheWriter;
 import javax.cache.integration.CompletionListener;
@@ -30,6 +32,7 @@ import javax.cache.processor.EntryProcessorException;
 import javax.cache.processor.EntryProcessorResult;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -41,6 +44,8 @@ public final class SCache<K, V> implements Cache<K, V> {
     private final MutableConfiguration<K, V> configuration;
     private final Optional<CacheLoader<K,V>> loader;
     private final Optional<CacheWriter<? super K,? super V>> writer;
+    private Supplier<Long> clock = System::currentTimeMillis;
+    private final Factory<SExpiryData> newExpiryData;
 
     @SuppressWarnings("unchecked")
     public SCache(CacheManager cacheManager, String name, Configuration<K, V> configuration) {
@@ -51,6 +56,8 @@ public final class SCache<K, V> implements Cache<K, V> {
                 null : this.configuration.getCacheLoaderFactory().create());
         writer = Optional.ofNullable(this.configuration.getCacheWriterFactory() == null ?
                 null : this.configuration.getCacheWriterFactory().create());
+        newExpiryData = (Factory<SExpiryData>) () ->
+                new SExpiryData(clock, (ExpiryPolicy)((MutableConfiguration) configuration).getExpiryPolicyFactory().create());
     }
 
     @Override
@@ -60,7 +67,7 @@ public final class SCache<K, V> implements Cache<K, V> {
         if (value == null) {
             value = readThrough(key);
         }
-        expiry.compute(key, (k,v) -> v == null ? new SExpiryData() : v.access());
+        expiry.compute(key, (k,v) -> v == null ? newExpiryData.create() : v.access());
         return value;
     }
 
@@ -91,7 +98,7 @@ public final class SCache<K, V> implements Cache<K, V> {
         expiryCheck(key);
         V old = data.put(key, value);
         writeThrough(key,value);
-        expiry.compute(key, (k,v) -> v == null ? new SExpiryData() : v.update());
+        expiry.compute(key, (k,v) -> v == null ? newExpiryData.create() : v.update());
         return old;
     }
 
@@ -105,7 +112,7 @@ public final class SCache<K, V> implements Cache<K, V> {
         boolean wasPut = data.putIfAbsent(key, value) == null;
         if (wasPut) {
             writeThrough(key, value);
-            expiry.put(key, new SExpiryData());
+            expiry.put(key, newExpiryData.create());
         }
         return wasPut;
     }
@@ -282,5 +289,9 @@ public final class SCache<K, V> implements Cache<K, V> {
             expiry.remove(key);
             data.remove(key);
         }
+    }
+
+    void setClock(Supplier<Long> clock) {
+        this.clock = clock;
     }
 }

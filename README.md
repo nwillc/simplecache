@@ -1,11 +1,11 @@
 # simplecache
 This is an incomplete JSR 107 implementation. It's backed by a store-by-reference ConcurrentHashMap, doesn't offer 
-management, statistics, and doesn't implement the annotations. Why did I bother? It was mostly an exercise.
+management, and doesn't implement the annotations. Why did I bother? It was mostly an exercise.
 I wanted something even simpler and cleaner then the reference implementation. Read-through and write-through are
 implemented synchronously. Basically this is only useful to front things like slow out of process requests.
 
-Currently this package only includes around a half dozen classes, depends only on the javax.cache-api artifact,
-and builds to an under 15K jar.
+Currently this package only includes under a dozen classes, depends only on the javax.cache-api artifact,
+and builds to an under 30K jar.
 
 -----
 [![ISC License](http://shields-nwillc.rhcloud.com/shield/tldrlegal?package=ISC)](http://shields-nwillc.rhcloud.com/homepage/tldrlegal?package=ISC)
