@@ -33,10 +33,6 @@ class SExpiryData {
     long accessed = NEVER;
     long updated = NEVER;
 
-    SExpiryData() {
-        this(System::currentTimeMillis);
-    }
-
     public SExpiryData(Supplier<Long> timeSource) {
         this(timeSource, new EternalExpiryPolicy());
     }
