@@ -17,6 +17,8 @@
 package com.github.nwillc.simplecache;
 
 
+import com.github.nwillc.simplecache.managment.SCacheStatisticsMXBean;
+
 import javax.cache.Cache;
 import javax.cache.CacheManager;
 import javax.cache.configuration.CacheEntryListenerConfiguration;
@@ -32,20 +34,22 @@ import javax.cache.processor.EntryProcessorException;
 import javax.cache.processor.EntryProcessorResult;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class SCache<K, V> implements Cache<K, V> {
-    private final Map<K, V> data = new ConcurrentHashMap<>();
     final Map<K, SExpiryData> expiry = new ConcurrentHashMap<>();
+    private final Map<K, V> data = new ConcurrentHashMap<>();
     private final CacheManager cacheManager;
     private final String name;
     private final MutableConfiguration<K, V> configuration;
     private final Optional<CacheLoader<K,V>> loader;
     private final Optional<CacheWriter<? super K,? super V>> writer;
+    private final Factory<SExpiryData> expiryDataFactory;
+    private final Optional<SCacheStatisticsMXBean> statistics;
     private Supplier<Long> clock = System::currentTimeMillis;
-    private final Factory<SExpiryData> newExpiryData;
 
     @SuppressWarnings("unchecked")
     public SCache(CacheManager cacheManager, String name, Configuration<K, V> configuration) {
@@ -56,18 +60,24 @@ public final class SCache<K, V> implements Cache<K, V> {
                 null : this.configuration.getCacheLoaderFactory().create());
         writer = Optional.ofNullable(this.configuration.getCacheWriterFactory() == null ?
                 null : this.configuration.getCacheWriterFactory().create());
-        newExpiryData = (Factory<SExpiryData>) () ->
-                new SExpiryData(clock, (ExpiryPolicy)((MutableConfiguration) configuration).getExpiryPolicyFactory().create());
+        expiryDataFactory = (Factory<SExpiryData>) () ->
+                new SExpiryData(clock, (ExpiryPolicy) ((MutableConfiguration) configuration).getExpiryPolicyFactory().create());
+        statistics = ((MutableConfiguration) configuration).isStatisticsEnabled() ?
+                Optional.of(new SCacheStatisticsMXBean()) : Optional.<SCacheStatisticsMXBean>empty();
     }
 
     @Override
     public V get(K key) {
+        statistics.ifPresent(SCacheStatisticsMXBean::get);
         expiryCheck(key);
         V value = data.get(key);
         if (value == null) {
+            statistics.ifPresent(SCacheStatisticsMXBean::miss);
             value = readThrough(key);
+        } else {
+            statistics.ifPresent(SCacheStatisticsMXBean::hit);
         }
-        expiry.compute(key, (k,v) -> v == null ? newExpiryData.create() : v.access());
+        expiry.compute(key, (k, v) -> v == null ? expiryDataFactory.create() : v.access());
         return value;
     }
 
@@ -95,10 +105,12 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public V getAndPut(K key, V value) {
+        statistics.ifPresent(SCacheStatisticsMXBean::get);
+        statistics.ifPresent(SCacheStatisticsMXBean::put);
         expiryCheck(key);
         V old = data.put(key, value);
         writeThrough(key,value);
-        expiry.compute(key, (k,v) -> v == null ? newExpiryData.create() : v.update());
+        expiry.compute(key, (k, v) -> v == null ? expiryDataFactory.create() : v.update());
         return old;
     }
 
@@ -111,8 +123,9 @@ public final class SCache<K, V> implements Cache<K, V> {
     public boolean putIfAbsent(K key, V value) {
         boolean wasPut = data.putIfAbsent(key, value) == null;
         if (wasPut) {
+            statistics.ifPresent(SCacheStatisticsMXBean::put);
             writeThrough(key, value);
-            expiry.put(key, newExpiryData.create());
+            expiry.put(key, expiryDataFactory.create());
         }
         return wasPut;
     }
@@ -121,6 +134,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     public boolean remove(K key) {
         boolean wasRemoved = data.remove(key) != null;
         if (wasRemoved) {
+            statistics.ifPresent(SCacheStatisticsMXBean::remove);
             removeThrough(key);
             expiry.remove(key);
         }
@@ -131,6 +145,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     public boolean remove(K key, V oldValue) {
         boolean wasRemoved = data.remove(key, oldValue);
         if (wasRemoved) {
+            statistics.ifPresent(SCacheStatisticsMXBean::remove);
             removeThrough(key);
             expiry.remove(key);
         }
@@ -140,6 +155,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     @Override
     public V getAndRemove(K key) {
         V value = get(key);
+        statistics.ifPresent(SCacheStatisticsMXBean::remove);
         remove(key);
         return value;
     }
@@ -167,7 +183,10 @@ public final class SCache<K, V> implements Cache<K, V> {
     @Override
     public V getAndReplace(K key, V value) {
         expiryCheck(key);
-        expiry.computeIfPresent(key, (k,v) -> v.update());
+        expiry.computeIfPresent(key, (k,v) -> {
+            statistics.ifPresent(SCacheStatisticsMXBean::get);
+            return v.update();
+        });
         return data.replace(key, value);
     }
 
@@ -286,6 +305,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     private void expiryCheck(K key) {
         SExpiryData expiryData = expiry.get(key);
         if (expiryData != null && expiryData.expired()) {
+            statistics.ifPresent(SCacheStatisticsMXBean::eviction);
             expiry.remove(key);
             data.remove(key);
         }
@@ -293,5 +313,9 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     void setClock(Supplier<Long> clock) {
         this.clock = clock;
+    }
+
+    public SCacheStatisticsMXBean getStatistics() {
+        return statistics.orElse(null);
     }
 }
