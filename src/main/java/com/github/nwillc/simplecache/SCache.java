@@ -163,8 +163,8 @@ public final class SCache<K, V> implements Cache<K, V> {
     public boolean replace(K key, V oldValue, V newValue) {
         boolean wasPut = data.replace(key, oldValue, newValue);
         if (wasPut) {
-           writeThrough(key, newValue);
-           expiry.get(key).update();
+            writeThrough(key, newValue);
+            expiry.get(key).update();
         }
         return wasPut;
     }
@@ -276,7 +276,7 @@ public final class SCache<K, V> implements Cache<K, V> {
         if (!(loader.isPresent() && configuration.isReadThrough())) {
             return null;
         }
-
+        statistics.ifPresent(SCacheStatisticsMXBean::readThrough);
         V value = loader.get().load(key);
         if (value != null) {
             data.put(key, value);
@@ -289,7 +289,7 @@ public final class SCache<K, V> implements Cache<K, V> {
         if (!(writer.isPresent() && configuration.isWriteThrough())) {
             return;
         }
-
+        statistics.ifPresent(SCacheStatisticsMXBean::writeThrough);
         writer.get().write(new SEntry<>(key, value));
     }
 
@@ -297,7 +297,7 @@ public final class SCache<K, V> implements Cache<K, V> {
         if (!(writer.isPresent() && configuration.isWriteThrough())) {
             return;
         }
-
+        statistics.ifPresent(SCacheStatisticsMXBean::removeThrough);
         writer.get().delete(key);
     }
 

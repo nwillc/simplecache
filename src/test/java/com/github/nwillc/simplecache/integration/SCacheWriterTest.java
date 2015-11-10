@@ -22,11 +22,7 @@ import org.junit.Test;
 
 import javax.cache.Cache;
 import javax.cache.integration.CacheWriter;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.assertj.core.data.MapEntry.entry;

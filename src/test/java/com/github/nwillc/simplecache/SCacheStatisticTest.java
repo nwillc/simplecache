@@ -16,6 +16,8 @@
 
 package com.github.nwillc.simplecache;
 
+import com.github.nwillc.simplecache.integration.SCacheLoader;
+import com.github.nwillc.simplecache.integration.SCacheWriter;
 import com.github.nwillc.simplecache.managment.SCacheStatisticsMXBean;
 import com.github.nwillc.simplecache.spi.SCachingProvider;
 import org.assertj.core.api.AssertionsForClassTypes;
@@ -29,7 +31,8 @@ import javax.cache.configuration.MutableConfiguration;
 import javax.cache.expiry.CreatedExpiryPolicy;
 import javax.cache.expiry.Duration;
 import javax.cache.spi.CachingProvider;
-
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -39,15 +42,21 @@ public class SCacheStatisticTest {
     private SCache<Long, String> cache;
     private CacheManager cacheManager;
     private SCacheStatisticsMXBean statistics;
+    private Map<Long,String> backingStore;
 
     @SuppressWarnings("unchecked")
     @Before
     public void setUp() throws Exception {
+        backingStore = new HashMap<>();
         CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
         cacheManager = cachingProvider.getCacheManager();
         MutableConfiguration configuration = new MutableConfiguration<>();
         configuration.setStatisticsEnabled(true);
         configuration.setExpiryPolicyFactory(() -> new CreatedExpiryPolicy(new Duration(TimeUnit.MINUTES,1)));
+        configuration.setReadThrough(true);
+        configuration.setCacheLoaderFactory(() -> new SCacheLoader(backingStore::get));
+        configuration.setWriteThrough(true);
+        configuration.setCacheWriterFactory(() -> new SCacheWriter<Long,String>(backingStore::remove, e -> backingStore.put(e.getKey(), e.getValue())));
         Cache cache = cacheManager.createCache(this.getClass().getSimpleName(), configuration);
         this.cache = (SCache<Long,String>)cache.unwrap(SCache.class);
         statistics = this.cache.getStatistics();
@@ -132,5 +141,27 @@ public class SCacheStatisticTest {
         clock.set(TimeUnit.MINUTES.toNanos(2));
         cache.get(0L);
         assertThat(statistics.getCacheEvictions()).isEqualTo(1L);
+    }
+
+    @Test
+    public void testReadThrough() throws Exception {
+        assertThat(statistics.getReadThrough()).isEqualTo(0L);
+        cache.get(0L);
+        assertThat(statistics.getReadThrough()).isEqualTo(1L);
+    }
+
+    @Test
+    public void testWriteThrough() throws Exception {
+        assertThat(statistics.getWriteThrough()).isEqualTo(0L);
+        cache.put(0L, "foo");
+        assertThat(statistics.getWriteThrough()).isEqualTo(1L);
+    }
+
+    @Test
+    public void testRemoveThrough() throws Exception {
+        cache.put(0L,"foo");
+        assertThat(statistics.getRemoveThrough()).isEqualTo(0L);
+        cache.remove(0L);
+        assertThat(statistics.getRemoveThrough()).isEqualTo(1L);
     }
 }

@@ -20,111 +20,141 @@ import javax.cache.management.CacheStatisticsMXBean;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class SCacheStatisticsMXBean implements CacheStatisticsMXBean {
-	private AtomicLong cacheHits = new AtomicLong(0L);
-	private AtomicLong cacheMisses = new AtomicLong(0L);
-	private AtomicLong cacheGets = new AtomicLong(0L);
-	private AtomicLong cachePuts = new AtomicLong(0L);
-	private AtomicLong cacheRemovals = new AtomicLong(0L);
-	private AtomicLong cacheEvictions = new AtomicLong(0L);
+    private final AtomicLong cacheHits = new AtomicLong(0L);
+    private final AtomicLong cacheMisses = new AtomicLong(0L);
+    private final AtomicLong cacheGets = new AtomicLong(0L);
+    private final AtomicLong cachePuts = new AtomicLong(0L);
+    private final AtomicLong cacheRemovals = new AtomicLong(0L);
+    private final AtomicLong cacheEvictions = new AtomicLong(0L);
+    private final AtomicLong readThrough = new AtomicLong(0L);
+    private final AtomicLong writeThrough = new AtomicLong(0L);
+    private final AtomicLong removeThrough = new AtomicLong(0L);
 
-	@Override
-	public void clear() {
-		cacheHits.set(0L);
-		cacheMisses.set(0L);
-		cacheGets.set(0L);
-		cachePuts.set(0L);
-		cacheRemovals.set(0L);
-		cacheEvictions.set(0L);
-	}
+    @Override
+    public void clear() {
+        cacheHits.set(0L);
+        cacheMisses.set(0L);
+        cacheGets.set(0L);
+        cachePuts.set(0L);
+        cacheRemovals.set(0L);
+        cacheEvictions.set(0L);
+    }
 
-	@Override
-	public long getCacheHits() {
-		return cacheHits.get();
-	}
+    @Override
+    public long getCacheHits() {
+        return cacheHits.get();
+    }
 
-	public long hit() {
-		return cacheHits.incrementAndGet();
-	}
+    public long hit() {
+        return cacheHits.incrementAndGet();
+    }
 
-	@Override
-	public float getCacheHitPercentage() {
-		return 0;
-	}
+    @Override
+    public float getCacheHitPercentage() {
+        return 0;
+    }
 
-	@Override
-	public long getCacheMisses() {
-		return cacheMisses.get();
-	}
+    @Override
+    public long getCacheMisses() {
+        return cacheMisses.get();
+    }
 
-	public long miss() {
-		return cacheMisses.incrementAndGet();
-	}
+    public long miss() {
+        return cacheMisses.incrementAndGet();
+    }
 
-	@Override
-	public float getCacheMissPercentage() {
-		return 0;
-	}
+    @Override
+    public float getCacheMissPercentage() {
+        return 0;
+    }
 
-	@Override
-	public long getCacheGets() {
-		return cacheGets.get();
-	}
+    @Override
+    public long getCacheGets() {
+        return cacheGets.get();
+    }
 
-	public Long get() {
-		return cacheGets.incrementAndGet();
-	}
+    public Long get() {
+        return cacheGets.incrementAndGet();
+    }
 
-	@Override
-	public long getCachePuts() {
-		return cachePuts.get();
-	}
+    @Override
+    public long getCachePuts() {
+        return cachePuts.get();
+    }
 
-	public long put() {
-		return cachePuts.incrementAndGet();
-	}
+    public long put() {
+        return cachePuts.incrementAndGet();
+    }
 
-	@Override
-	public long getCacheRemovals() {
-		return cacheRemovals.get();
-	}
+    @Override
+    public long getCacheRemovals() {
+        return cacheRemovals.get();
+    }
 
-	public long remove() {
-		return cacheRemovals.incrementAndGet();
-	}
+    public long remove() {
+        return cacheRemovals.incrementAndGet();
+    }
 
-	@Override
-	public long getCacheEvictions() {
-		return cacheEvictions.get();
-	}
+    @Override
+    public long getCacheEvictions() {
+        return cacheEvictions.get();
+    }
 
-	public long eviction() {
-		return cacheEvictions.incrementAndGet();
-	}
+    public long eviction() {
+        return cacheEvictions.incrementAndGet();
+    }
 
-	@Override
-	public float getAverageGetTime() {
-		return 0;
-	}
+    @Override
+    public float getAverageGetTime() {
+        return 0;
+    }
 
-	@Override
-	public float getAveragePutTime() {
-		return 0;
-	}
+    @Override
+    public float getAveragePutTime() {
+        return 0;
+    }
 
-	@Override
-	public float getAverageRemoveTime() {
-		return 0;
-	}
+    @Override
+    public float getAverageRemoveTime() {
+        return 0;
+    }
 
-	@Override
-	public String toString() {
-		return "SCacheStatisticsMXBean{" +
-				"cacheEvictions=" + cacheEvictions.get() +
-				", cacheHits=" + cacheHits.get() +
-				", cacheMisses=" + cacheMisses.get() +
-				", cacheGets=" + cacheGets.get() +
-				", cachePuts=" + cachePuts.get() +
-				", cacheRemovals=" + cacheRemovals.get() +
-				'}';
-	}
+    public long getReadThrough() {
+        return readThrough.get();
+    }
+
+    public long readThrough() {
+        return readThrough.incrementAndGet();
+    }
+
+    public long getWriteThrough() {
+        return writeThrough.get();
+    }
+
+    public long writeThrough() {
+        return writeThrough.incrementAndGet();
+    }
+
+    public long getRemoveThrough() {
+        return removeThrough.get();
+    }
+
+    public long removeThrough() {
+        return removeThrough.incrementAndGet();
+    }
+
+    @Override
+    public String toString() {
+        return "SCacheStatisticsMXBean{" +
+                "cacheEvictions=" + cacheEvictions.get() +
+                ", cacheHits=" + cacheHits.get() +
+                ", cacheMisses=" + cacheMisses.get() +
+                ", cacheGets=" + cacheGets.get() +
+                ", cachePuts=" + cachePuts.get() +
+                ", cacheRemovals=" + cacheRemovals.get() +
+                ", readThrough=" + readThrough.get() +
+                ", writeThrough=" + writeThrough.get() +
+                ", removeThrough=" + removeThrough.get() +
+                '}';
+    }
 }
