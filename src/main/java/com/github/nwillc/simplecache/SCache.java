@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class SCache<K, V> implements Cache<K, V> {
-    final Map<K, SExpiryData> expiry = new ConcurrentHashMap<>();
+    private final Map<K, SExpiryData> expiry = new ConcurrentHashMap<>();
     private final Map<K, V> data = new ConcurrentHashMap<>();
     private final CacheManager cacheManager;
     private final String name;

@@ -37,8 +37,8 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 public class SCacheReadThroughTest {
     private static final String NAME = "hoard";
     private Cache<Long, String> cache;
-    private Map<Long,String> backingStore = new HashMap<>();
-    private Factory<CacheLoader<Long,String>> factory =
+    private final Map<Long,String> backingStore = new HashMap<>();
+    private final Factory<CacheLoader<Long,String>> factory =
             (Factory<CacheLoader<Long, String>>) () -> new SCacheLoader<>(backingStore::get);
     private CacheManager cacheManager;
 
@@ -90,6 +90,7 @@ public class SCacheReadThroughTest {
         assertThat(cache.get(1L)).isNull();
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void shouldHandleNoFunctor() throws Exception {
         MutableConfiguration<Long, String> mutableConfiguration = cache.getConfiguration(MutableConfiguration.class);

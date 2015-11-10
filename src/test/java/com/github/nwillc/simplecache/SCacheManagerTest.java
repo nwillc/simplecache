@@ -33,7 +33,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 public class SCacheManagerTest {
     private CacheManager cacheManager;
-    private MutableConfiguration configuration = new MutableConfiguration();
+    private final MutableConfiguration configuration = new MutableConfiguration();
 
     @Before
     public void setUp() throws Exception {

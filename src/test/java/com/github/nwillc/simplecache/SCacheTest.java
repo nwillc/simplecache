@@ -292,5 +292,5 @@ public class SCacheTest {
         public boolean isStoreByValue() {
             return false;
         }
-    };
+    }
 }

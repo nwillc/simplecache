@@ -28,8 +28,8 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 
 public class SCacheWriterTest {
-	private Map<Long,String> map = new HashMap<>();
-	private SCacheWriter<Long,String> cacheWriter = new SCacheWriter<>(map::remove,
+	private final Map<Long,String> map = new HashMap<>();
+	private final SCacheWriter<Long,String> cacheWriter = new SCacheWriter<>(map::remove,
 			entry -> map.put(entry.getKey(), entry.getValue()));
 
 	@Before
@@ -66,7 +66,8 @@ public class SCacheWriterTest {
 		assertThat(map).containsOnly(entry(0L,"foo"));
 	}
 
-	@Test
+	@SuppressWarnings("unchecked")
+    @Test
 	public void shouldWriteAll() throws Exception {
 		assertThat(map).isEmpty();
 		List<Cache.Entry<Long,String>> entries = new ArrayList<>();

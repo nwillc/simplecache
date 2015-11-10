@@ -38,8 +38,8 @@ import static org.assertj.core.data.MapEntry.entry;
 public class SCacheWriteThroughTest {
     private static final String NAME = "hoard";
     private Cache<Long, String> cache;
-    private Map<Long,String> backingStore = new HashMap<>();
-    private Factory<CacheWriter<Long,String>> factory =
+    private final Map<Long,String> backingStore = new HashMap<>();
+    private final Factory<CacheWriter<Long,String>> factory =
             (Factory<CacheWriter<Long, String>>) () -> new SCacheWriter<>(backingStore::remove,e -> backingStore.put(e.getKey(), e.getValue()));
     private CacheManager cacheManager;
 
@@ -93,6 +93,7 @@ public class SCacheWriteThroughTest {
         assertThat(backingStore.get(0L)).isNotNull();
     }
 
+    @SuppressWarnings("unchecked")
     @Test
     public void shouldHandleMissingFunctor() throws Exception {
         MutableConfiguration<Long, String> mutableConfiguration = cache.getConfiguration(MutableConfiguration.class);

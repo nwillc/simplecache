@@ -28,7 +28,7 @@ import static org.assertj.core.data.MapEntry.entry;
 
 public class SCacheLoaderTest {
 
-    private SCacheLoader<Long,String> loader = new SCacheLoader<>(Object::toString);
+    private final SCacheLoader<Long,String> loader = new SCacheLoader<>(Object::toString);
 
     @Before
     public void setUp() throws Exception {
