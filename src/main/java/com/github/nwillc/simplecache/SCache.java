@@ -94,7 +94,21 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public void loadAll(Set<? extends K> keys, boolean replaceExistingValues, CompletionListener completionListener) {
-        throw new UnsupportedOperationException();
+        Optional<CompletionListener> listener = Optional.ofNullable(completionListener);
+
+        try { // Should be in another thread
+            for (K key : keys) {
+                if (containsKey(key) && replaceExistingValues) {
+                    expire(key);
+                }
+                get(key);
+            }
+        } catch (Exception e) {
+            listener.ifPresent(l -> l.onException(e));
+            return;
+        }
+
+       listener.ifPresent(CompletionListener::onCompletion);
     }
 
     @Override
@@ -304,10 +318,14 @@ public final class SCache<K, V> implements Cache<K, V> {
     private void expiryCheck(K key) {
         SExpiryData expiryData = expiry.get(key);
         if (expiryData != null && expiryData.expired()) {
-            statistics.ifPresent(SCacheStatisticsMXBean::eviction);
-            expiry.remove(key);
-            data.remove(key);
+            expire(key);
         }
+    }
+
+    private void expire(K key) {
+        statistics.ifPresent(SCacheStatisticsMXBean::eviction);
+        expiry.remove(key);
+        data.remove(key);
     }
 
     void setClock(Supplier<Long> clock) {

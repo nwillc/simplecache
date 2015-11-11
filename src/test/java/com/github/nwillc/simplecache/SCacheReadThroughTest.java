@@ -28,11 +28,17 @@ import javax.cache.configuration.CompleteConfiguration;
 import javax.cache.configuration.Factory;
 import javax.cache.configuration.MutableConfiguration;
 import javax.cache.integration.CacheLoader;
+import javax.cache.integration.CompletionListener;
 import javax.cache.spi.CachingProvider;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.Assert.fail;
 
 public class SCacheReadThroughTest {
     private static final String NAME = "hoard";
@@ -98,5 +104,105 @@ public class SCacheReadThroughTest {
         cache = cacheManager.createCache(NAME + "broken", mutableConfiguration);
         backingStore.put(1L, "1");
         assertThat(cache.get(1L)).isNull();
+    }
+
+    @Test
+    public void testLoadAllNoReplace() throws Exception {
+        backingStore.put(0L, "0");
+        cache.put(0L, "old");
+        backingStore.put(1L, "1");
+        Set<Long> keys = new HashSet<>();
+        keys.add(0L);
+        keys.add(1L);
+        assertThat(cache.containsKey(0L)).isTrue();
+        assertThat(cache.containsKey(1L)).isFalse();
+        final Semaphore completed = new Semaphore(1);
+        completed.acquire();
+        cache.loadAll(keys, false, new CompletionListener() {
+            @Override
+            public void onCompletion() {
+               completed.release();
+            }
+
+            @Override
+            public void onException(Exception e) {
+                fail("Load failed");
+            }
+        });
+        if (!completed.tryAcquire(1, 5, TimeUnit.SECONDS)) {
+            fail("never completed");
+        }
+        assertThat(cache.get(0L)).isEqualTo("old");
+        assertThat(cache.containsKey(1L)).isTrue();
+    }
+
+    @Test
+    public void testLoadAllNoReplaceNoListener() throws Exception {
+        backingStore.put(0L, "0");
+        Set<Long> keys = new HashSet<>();
+        keys.add(0L);
+        assertThat(cache.containsKey(0L)).isFalse();
+        cache.loadAll(keys, false, null);
+        assertThat(cache.containsKey(0L)).isTrue();
+    }
+
+    @Test
+    public void testLoadAllReplace() throws Exception {
+        backingStore.put(0L, "0");
+        cache.put(0L, "bad");
+        backingStore.put(1L, "1");
+        Set<Long> keys = new HashSet<>();
+        keys.add(0L);
+        keys.add(1L);
+        assertThat(cache.containsKey(0L)).isTrue();
+        assertThat(cache.containsKey(1L)).isFalse();
+        final Semaphore completed = new Semaphore(1);
+        completed.acquire();
+        cache.loadAll(keys, true, new CompletionListener() {
+            @Override
+            public void onCompletion() {
+                completed.release();
+            }
+
+            @Override
+            public void onException(Exception e) {
+                fail("Load failed");
+            }
+        });
+        if (!completed.tryAcquire(1, 5, TimeUnit.SECONDS)) {
+            fail("never completed");
+        }
+        assertThat(cache.get(0L)).isEqualTo("0");
+        assertThat(cache.containsKey(1L)).isTrue();
+    }
+
+    @Test
+    public void testListenForException() throws Exception {
+        MutableConfiguration<Long,String> configuration = new MutableConfiguration<>();
+        configuration.setReadThrough(true);
+        Factory<CacheLoader<Long,String>> failingLoaderFactory = () -> new SCacheLoader<>(k -> {
+            throw new RuntimeException("pop!");
+        });
+        configuration.setCacheLoaderFactory(failingLoaderFactory);
+        cache = cacheManager.createCache(NAME + "exception", configuration);
+        Set<Long> keys = new HashSet<>();
+        keys.add(0L);
+        final Semaphore semaphore = new Semaphore(1);
+        semaphore.acquire();
+        cache.loadAll(keys, true, new CompletionListener() {
+            @Override
+            public void onCompletion() {
+                fail("Load completed");
+            }
+
+            @Override
+            public void onException(Exception e) {
+                semaphore.release();
+
+            }
+        });
+        if (!semaphore.tryAcquire(1, 5, TimeUnit.SECONDS)) {
+            fail("never through exception");
+        }
     }
 }
