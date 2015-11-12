@@ -87,12 +87,6 @@ public class SCacheTest {
     @Test
     public void testDeregisterListener() throws Exception {
         assertThatThrownBy(() -> cache.deregisterCacheEntryListener(null)).isInstanceOf(UnsupportedOperationException.class);
-
-    }
-
-    @Test
-    public void testClose() throws Exception {
-        cache.close();
     }
 
     @Test
@@ -270,6 +264,15 @@ public class SCacheTest {
         assertThat(sCache.get(0L)).isEqualTo("foo");
         time.set(TimeUnit.SECONDS.toNanos(10));
         assertThat(sCache.get(0L)).isNull();
+    }
+
+    @Test
+    public void testClose() throws Exception {
+        assertThat(cache.isClosed()).isFalse();
+        cache.close();
+        assertThat(cache.isClosed()).isTrue();
+        assertThatThrownBy(() -> cache.get(0L)).isInstanceOf(IllegalStateException.class);
+        cache.close();
     }
 
     static class OtherConfig implements Configuration<Long, String> {
