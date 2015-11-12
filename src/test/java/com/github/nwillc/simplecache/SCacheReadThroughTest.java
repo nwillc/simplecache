@@ -29,14 +29,17 @@ import javax.cache.configuration.Factory;
 import javax.cache.configuration.MutableConfiguration;
 import javax.cache.integration.CacheLoader;
 import javax.cache.integration.CompletionListener;
+import javax.cache.integration.CompletionListenerFuture;
 import javax.cache.spi.CachingProvider;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.fail;
 
@@ -156,21 +159,12 @@ public class SCacheReadThroughTest {
         keys.add(1L);
         assertThat(cache.containsKey(0L)).isTrue();
         assertThat(cache.containsKey(1L)).isFalse();
-        final Semaphore completed = new Semaphore(1);
-        completed.acquire();
-        cache.loadAll(keys, true, new CompletionListener() {
-            @Override
-            public void onCompletion() {
-                completed.release();
-            }
-
-            @Override
-            public void onException(Exception e) {
-                fail("Load failed");
-            }
-        });
-        if (!completed.tryAcquire(1, 5, TimeUnit.SECONDS)) {
-            fail("never completed");
+        CompletionListenerFuture done = new CompletionListenerFuture();
+        cache.loadAll(keys, true, done);
+        try {
+            done.get(5, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            fail(e.toString());
         }
         assertThat(cache.get(0L)).isEqualTo("0");
         assertThat(cache.containsKey(1L)).isTrue();
@@ -187,22 +181,8 @@ public class SCacheReadThroughTest {
         cache = cacheManager.createCache(NAME + "exception", configuration);
         Set<Long> keys = new HashSet<>();
         keys.add(0L);
-        final Semaphore semaphore = new Semaphore(1);
-        semaphore.acquire();
-        cache.loadAll(keys, true, new CompletionListener() {
-            @Override
-            public void onCompletion() {
-                fail("Load completed");
-            }
-
-            @Override
-            public void onException(Exception e) {
-                semaphore.release();
-
-            }
-        });
-        if (!semaphore.tryAcquire(1, 5, TimeUnit.SECONDS)) {
-            fail("never through exception");
-        }
+        CompletionListenerFuture done = new CompletionListenerFuture();
+        cache.loadAll(keys, true, done);
+        assertThatThrownBy(() -> done.get(2, TimeUnit.SECONDS)).isInstanceOf(ExecutionException.class);
     }
 }
