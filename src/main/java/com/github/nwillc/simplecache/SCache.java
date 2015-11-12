@@ -44,8 +44,8 @@ public final class SCache<K, V> implements Cache<K, V> {
     private final CacheManager cacheManager;
     private final String name;
     private final MutableConfiguration<K, V> configuration;
-    private final Optional<CacheLoader<K,V>> loader;
-    private final Optional<CacheWriter<? super K,? super V>> writer;
+    private final Optional<CacheLoader<K, V>> loader;
+    private final Optional<CacheWriter<? super K, ? super V>> writer;
     private final Factory<SExpiryData> expiryDataFactory;
     private final Optional<SCacheStatisticsMXBean> statistics;
     private Supplier<Long> clock = System::nanoTime;
@@ -108,7 +108,7 @@ public final class SCache<K, V> implements Cache<K, V> {
             return;
         }
 
-       listener.ifPresent(CompletionListener::onCompletion);
+        listener.ifPresent(CompletionListener::onCompletion);
     }
 
     @Override
@@ -122,7 +122,7 @@ public final class SCache<K, V> implements Cache<K, V> {
         statistics.ifPresent(SCacheStatisticsMXBean::put);
         expiryCheck(key);
         V old = data.put(key, value);
-        writeThrough(key,value);
+        writeThrough(key, value);
         expiry.compute(key, (k, v) -> v == null ? expiryDataFactory.create() : v.update());
         return old;
     }
@@ -187,7 +187,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     public boolean replace(K key, V value) {
         boolean wasPut = data.replace(key, value) != null;
         if (wasPut) {
-            writeThrough(key,value);
+            writeThrough(key, value);
             expiry.get(key).update();
         }
         return wasPut;
@@ -196,7 +196,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     @Override
     public V getAndReplace(K key, V value) {
         expiryCheck(key);
-        expiry.computeIfPresent(key, (k,v) -> {
+        expiry.computeIfPresent(key, (k, v) -> {
             statistics.ifPresent(SCacheStatisticsMXBean::get);
             return v.update();
         });

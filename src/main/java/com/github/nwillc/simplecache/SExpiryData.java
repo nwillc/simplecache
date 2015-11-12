@@ -92,7 +92,7 @@ class SExpiryData {
 
         abstract boolean test(SExpiryData expiryData, long now);
 
-        boolean test(long now, Duration duration, long ... times) {
+        boolean test(long now, Duration duration, long... times) {
             long last = 0L;
             for (long time : times) {
                 if (time > last) {

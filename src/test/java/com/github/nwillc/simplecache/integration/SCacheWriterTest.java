@@ -28,52 +28,52 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 
 public class SCacheWriterTest {
-	private final Map<Long,String> map = new HashMap<>();
-	private final SCacheWriter<Long,String> cacheWriter = new SCacheWriter<>(map::remove,
-			entry -> map.put(entry.getKey(), entry.getValue()));
+    private final Map<Long, String> map = new HashMap<>();
+    private final SCacheWriter<Long, String> cacheWriter = new SCacheWriter<>(map::remove,
+            entry -> map.put(entry.getKey(), entry.getValue()));
 
-	@Before
-	public void setUp() throws Exception {
-	  	map.clear();
-		assertThat(cacheWriter).isInstanceOf(CacheWriter.class);
-	}
+    @Before
+    public void setUp() throws Exception {
+        map.clear();
+        assertThat(cacheWriter).isInstanceOf(CacheWriter.class);
+    }
 
-	@Test
-	public void shouldDelete() throws Exception {
-	  	map.put(0L, "foo");
-		assertThat(map).containsOnly(entry(0L,"foo"));
-		cacheWriter.delete(0L);
-		assertThat(map).doesNotContain(entry(0L, "foo"));
-	}
-
-	@Test
-	public void shouldDeleteAll() throws Exception {
-		map.put(0L, "foo");
-		map.put(1L, "bar");
-		assertThat(map).containsOnly(entry(0L,"foo"),entry(1L,"bar"));
-		List<Long> keys = new ArrayList<>();
-		keys.add(0L);
-		keys.add(1L);
-		cacheWriter.deleteAll(keys);
-		assertThat(map).doesNotContain(entry(0L, "foo"),entry(1L,"bar"));
-	}
-
-	@Test
-	public void shouldWrite() throws Exception {
-	   	assertThat(map).isEmpty();
-		SEntry<Long,String> entry = new SEntry<>(0L, "foo");
-		cacheWriter.write(entry);
-		assertThat(map).containsOnly(entry(0L,"foo"));
-	}
-
-	@SuppressWarnings("unchecked")
     @Test
-	public void shouldWriteAll() throws Exception {
-		assertThat(map).isEmpty();
-		List<Cache.Entry<Long,String>> entries = new ArrayList<>();
-		entries.add(new SEntry<>(0L, "foo"));
-		entries.add(new SEntry<>(1L, "bar"));
-		cacheWriter.writeAll((Collection)entries);
-		assertThat(map).containsOnly(entry(0L,"foo"),entry(1L,"bar"));
-	}
+    public void shouldDelete() throws Exception {
+        map.put(0L, "foo");
+        assertThat(map).containsOnly(entry(0L, "foo"));
+        cacheWriter.delete(0L);
+        assertThat(map).doesNotContain(entry(0L, "foo"));
+    }
+
+    @Test
+    public void shouldDeleteAll() throws Exception {
+        map.put(0L, "foo");
+        map.put(1L, "bar");
+        assertThat(map).containsOnly(entry(0L, "foo"), entry(1L, "bar"));
+        List<Long> keys = new ArrayList<>();
+        keys.add(0L);
+        keys.add(1L);
+        cacheWriter.deleteAll(keys);
+        assertThat(map).doesNotContain(entry(0L, "foo"), entry(1L, "bar"));
+    }
+
+    @Test
+    public void shouldWrite() throws Exception {
+        assertThat(map).isEmpty();
+        SEntry<Long, String> entry = new SEntry<>(0L, "foo");
+        cacheWriter.write(entry);
+        assertThat(map).containsOnly(entry(0L, "foo"));
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void shouldWriteAll() throws Exception {
+        assertThat(map).isEmpty();
+        List<Cache.Entry<Long, String>> entries = new ArrayList<>();
+        entries.add(new SEntry<>(0L, "foo"));
+        entries.add(new SEntry<>(1L, "bar"));
+        cacheWriter.writeAll((Collection) entries);
+        assertThat(map).containsOnly(entry(0L, "foo"), entry(1L, "bar"));
+    }
 }

@@ -24,8 +24,8 @@ import java.util.function.Function;
 
 import static java.util.stream.StreamSupport.stream;
 
-public class SCacheLoader<K,V> implements CacheLoader<K,V> {
-    private final Function<K,V> loader;
+public class SCacheLoader<K, V> implements CacheLoader<K, V> {
+    private final Function<K, V> loader;
 
     public SCacheLoader(Function<K, V> loader) {
         this.loader = loader;
@@ -39,7 +39,7 @@ public class SCacheLoader<K,V> implements CacheLoader<K,V> {
     @Override
     public Map<K, V> loadAll(Iterable<? extends K> keys) throws CacheLoaderException {
         // Collectors.toMap has issues with some versions of jdk8 so doing this w/ forEach
-        Map<K,V> map = new HashMap<>();
+        Map<K, V> map = new HashMap<>();
         stream(keys.spliterator(), false).forEach(k -> map.put(k, load(k)));
         return map;
     }

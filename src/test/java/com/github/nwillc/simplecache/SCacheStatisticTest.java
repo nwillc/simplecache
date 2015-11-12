@@ -42,7 +42,7 @@ public class SCacheStatisticTest {
     private SCache<Long, String> cache;
     private CacheManager cacheManager;
     private SCacheStatisticsMXBean statistics;
-    private Map<Long,String> backingStore;
+    private Map<Long, String> backingStore;
 
     @SuppressWarnings("unchecked")
     @Before
@@ -52,13 +52,13 @@ public class SCacheStatisticTest {
         cacheManager = cachingProvider.getCacheManager();
         MutableConfiguration configuration = new MutableConfiguration<>();
         configuration.setStatisticsEnabled(true);
-        configuration.setExpiryPolicyFactory(() -> new CreatedExpiryPolicy(new Duration(TimeUnit.MINUTES,1)));
+        configuration.setExpiryPolicyFactory(() -> new CreatedExpiryPolicy(new Duration(TimeUnit.MINUTES, 1)));
         configuration.setReadThrough(true);
         configuration.setCacheLoaderFactory(() -> new SCacheLoader(backingStore::get));
         configuration.setWriteThrough(true);
-        configuration.setCacheWriterFactory(() -> new SCacheWriter<Long,String>(backingStore::remove, e -> backingStore.put(e.getKey(), e.getValue())));
+        configuration.setCacheWriterFactory(() -> new SCacheWriter<Long, String>(backingStore::remove, e -> backingStore.put(e.getKey(), e.getValue())));
         Cache cache = cacheManager.createCache(this.getClass().getSimpleName(), configuration);
-        this.cache = (SCache<Long,String>)cache.unwrap(SCache.class);
+        this.cache = (SCache<Long, String>) cache.unwrap(SCache.class);
         statistics = this.cache.getStatistics();
     }
 
@@ -72,7 +72,7 @@ public class SCacheStatisticTest {
     @Test
     public void testIsNotEnabled() throws Exception {
         Cache cache2 = cacheManager.createCache(this.getClass().getSimpleName() + "-noStats", new MutableConfiguration<>());
-        cache = (SCache<Long,String>)cache2.unwrap(SCache.class);
+        cache = (SCache<Long, String>) cache2.unwrap(SCache.class);
         AssertionsForClassTypes.assertThat(cache.getConfiguration(MutableConfiguration.class).isStatisticsEnabled()).isFalse();
         AssertionsForClassTypes.assertThat(cache.getStatistics()).isNull();
     }
@@ -82,7 +82,7 @@ public class SCacheStatisticTest {
         assertThat(statistics.getCacheGets()).isEqualTo(0L);
         cache.get(0L);
         assertThat(statistics.getCacheGets()).isEqualTo(1L);
-        cache.getAndPut(0L,"foo");
+        cache.getAndPut(0L, "foo");
         assertThat(statistics.getCacheGets()).isEqualTo(2L);
         cache.getAndReplace(0L, "bar");
         assertThat(statistics.getCacheGets()).isEqualTo(3L);
@@ -135,7 +135,7 @@ public class SCacheStatisticTest {
     public void testEviction() throws Exception {
         final AtomicLong clock = new AtomicLong(0L);
         cache.setClock(clock::get);
-        cache.put(0L,"foo");
+        cache.put(0L, "foo");
         cache.get(0L);
         assertThat(statistics.getCacheEvictions()).isEqualTo(0L);
         clock.set(TimeUnit.MINUTES.toNanos(2));
@@ -159,7 +159,7 @@ public class SCacheStatisticTest {
 
     @Test
     public void testRemoveThrough() throws Exception {
-        cache.put(0L,"foo");
+        cache.put(0L, "foo");
         assertThat(statistics.getRemoveThrough()).isEqualTo(0L);
         cache.remove(0L);
         assertThat(statistics.getRemoveThrough()).isEqualTo(1L);

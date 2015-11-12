@@ -28,7 +28,7 @@ import static org.assertj.core.data.MapEntry.entry;
 
 public class SCacheLoaderTest {
 
-    private final SCacheLoader<Long,String> loader = new SCacheLoader<>(Object::toString);
+    private final SCacheLoader<Long, String> loader = new SCacheLoader<>(Object::toString);
 
     @Before
     public void setUp() throws Exception {
@@ -45,6 +45,6 @@ public class SCacheLoaderTest {
         List<Long> keys = new ArrayList<>();
         keys.add(0L);
         keys.add(1L);
-        assertThat(loader.loadAll(keys)).containsExactly(entry(0L,"0"), entry(1L, "1"));
+        assertThat(loader.loadAll(keys)).containsExactly(entry(0L, "0"), entry(1L, "1"));
     }
 }

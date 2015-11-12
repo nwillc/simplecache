@@ -201,20 +201,20 @@ public class SCacheTest {
 
     @Test
     public void testGetAndPut() throws Exception {
-        cache.put(0L,"foo");
-        assertThat(cache.getAndPut(0L,"0")).isEqualTo("foo");
+        cache.put(0L, "foo");
+        assertThat(cache.getAndPut(0L, "0")).isEqualTo("foo");
         assertThat(cache.get(0L)).isEqualTo("0");
     }
 
     @SuppressWarnings("unchecked")
     @Test
     public void testPutAll() throws Exception {
-        Map<Long,String> map = new HashMap<>();
+        Map<Long, String> map = new HashMap<>();
         map.put(0L, "0");
         map.put(1L, "1");
         assertThat(cache).isEmpty();
         cache.putAll(map);
-        assertThat(cache).containsExactly(new SEntry<>(0L,"0"), new SEntry<>(1L,"1"));
+        assertThat(cache).containsExactly(new SEntry<>(0L, "0"), new SEntry<>(1L, "1"));
     }
 
     @Test
@@ -228,7 +228,7 @@ public class SCacheTest {
     @Test
     public void testRemove() throws Exception {
         cache.put(0L, "foo");
-        assertThat(cache.remove(0L,"bar")).isFalse();
+        assertThat(cache.remove(0L, "bar")).isFalse();
         assertThat(cache.get(0L)).isEqualTo("foo");
         assertThat(cache.remove(0L, "foo")).isTrue();
         assertThat(cache.get(0L)).isNull();
@@ -237,19 +237,19 @@ public class SCacheTest {
     @Test
     public void testReplace() throws Exception {
         cache.put(0L, "foo");
-        assertThat(cache.replace(0L,"bar")).isTrue();
+        assertThat(cache.replace(0L, "bar")).isTrue();
         assertThat(cache.get(0L)).isEqualTo("bar");
     }
 
     @Test
     public void testReplaceFail() throws Exception {
-        assertThat(cache.replace(0L,"foo")).isFalse();
+        assertThat(cache.replace(0L, "foo")).isFalse();
         assertThat(cache.get(0L)).isNull();
     }
 
     @Test
     public void testReplaceWithValue() throws Exception {
-        cache.put(0L,"foo");
+        cache.put(0L, "foo");
         assertThat(cache.replace(0L, "bar", "baz")).isFalse();
         assertThat(cache.get(0L)).isEqualTo("foo");
         assertThat(cache.replace(0L, "foo", "bar")).isTrue();
@@ -259,10 +259,10 @@ public class SCacheTest {
     @SuppressWarnings("unchecked")
     @Test
     public void shouldExpire() throws Exception {
-        MutableConfiguration<Long,String> conf = new MutableConfiguration<>();
-        conf.setExpiryPolicyFactory(() -> new CreatedExpiryPolicy(new Duration(TimeUnit.SECONDS,5)));
+        MutableConfiguration<Long, String> conf = new MutableConfiguration<>();
+        conf.setExpiryPolicyFactory(() -> new CreatedExpiryPolicy(new Duration(TimeUnit.SECONDS, 5)));
         cache = cacheManager.createCache(NAME + "-expiry", conf);
-        SCache<Long,String> sCache = cache.unwrap(SCache.class);
+        SCache<Long, String> sCache = cache.unwrap(SCache.class);
         assertThat(sCache).isNotNull();
         final AtomicLong time = new AtomicLong(0L);
         sCache.setClock(time::get);
@@ -272,7 +272,7 @@ public class SCacheTest {
         assertThat(sCache.get(0L)).isNull();
     }
 
-    static class OtherConfig implements Configuration<Long,String> {
+    static class OtherConfig implements Configuration<Long, String> {
         @Override
         public Class<Long> getKeyType() {
             return null;

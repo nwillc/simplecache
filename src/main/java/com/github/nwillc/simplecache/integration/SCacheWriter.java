@@ -22,33 +22,33 @@ import javax.cache.integration.CacheWriterException;
 import java.util.Collection;
 import java.util.function.Consumer;
 
-public class SCacheWriter<K,V> implements CacheWriter<K,V> {
-	private final Consumer<Object> deleter;
-	private final Consumer<Cache.Entry<? extends K, ? extends V>> writer;
+public class SCacheWriter<K, V> implements CacheWriter<K, V> {
+    private final Consumer<Object> deleter;
+    private final Consumer<Cache.Entry<? extends K, ? extends V>> writer;
 
-	public SCacheWriter(Consumer<Object> deleter, Consumer<Cache.Entry<? extends K, ? extends V>> writer) {
-		this.deleter = deleter;
-		this.writer = writer;
-	}
+    public SCacheWriter(Consumer<Object> deleter, Consumer<Cache.Entry<? extends K, ? extends V>> writer) {
+        this.deleter = deleter;
+        this.writer = writer;
+    }
 
-	@Override
-	public void delete(Object key) throws CacheWriterException {
-		deleter.accept(key);
-	}
+    @Override
+    public void delete(Object key) throws CacheWriterException {
+        deleter.accept(key);
+    }
 
-	@Override
-	public void deleteAll(Collection<?> keys) throws CacheWriterException {
-	   keys.stream().forEach(deleter);
-	}
+    @Override
+    public void deleteAll(Collection<?> keys) throws CacheWriterException {
+        keys.stream().forEach(deleter);
+    }
 
-	@Override
-	public void write(Cache.Entry<? extends K, ? extends V> entry) throws CacheWriterException {
-	   writer.accept(entry);
-	}
+    @Override
+    public void write(Cache.Entry<? extends K, ? extends V> entry) throws CacheWriterException {
+        writer.accept(entry);
+    }
 
-	@Override
-	public void writeAll(Collection<Cache.Entry<? extends K, ? extends V>> entries) throws CacheWriterException {
-	   entries.stream().forEach(writer);
-	}
+    @Override
+    public void writeAll(Collection<Cache.Entry<? extends K, ? extends V>> entries) throws CacheWriterException {
+        entries.stream().forEach(writer);
+    }
 
 }

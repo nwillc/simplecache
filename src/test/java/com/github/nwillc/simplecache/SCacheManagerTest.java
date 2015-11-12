@@ -32,8 +32,8 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 
 public class SCacheManagerTest {
-    private CacheManager cacheManager;
     private final MutableConfiguration configuration = new MutableConfiguration();
+    private CacheManager cacheManager;
 
     @Before
     public void setUp() throws Exception {

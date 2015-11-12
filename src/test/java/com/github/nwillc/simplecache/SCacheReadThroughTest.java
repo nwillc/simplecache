@@ -42,17 +42,17 @@ import static org.junit.Assert.fail;
 
 public class SCacheReadThroughTest {
     private static final String NAME = "hoard";
-    private Cache<Long, String> cache;
-    private final Map<Long,String> backingStore = new HashMap<>();
-    private final Factory<CacheLoader<Long,String>> factory =
+    private final Map<Long, String> backingStore = new HashMap<>();
+    private final Factory<CacheLoader<Long, String>> factory =
             (Factory<CacheLoader<Long, String>>) () -> new SCacheLoader<>(backingStore::get);
+    private Cache<Long, String> cache;
     private CacheManager cacheManager;
 
     @Before
     public void setUp() throws Exception {
         CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
         cacheManager = cachingProvider.getCacheManager();
-        MutableConfiguration<Long,String> configuration = new MutableConfiguration<>();
+        MutableConfiguration<Long, String> configuration = new MutableConfiguration<>();
         configuration.setReadThrough(true);
         configuration.setCacheLoaderFactory(factory);
         cache = cacheManager.createCache(NAME, configuration);
@@ -66,7 +66,7 @@ public class SCacheReadThroughTest {
     @Test
     public void shouldReadThrough() throws Exception {
         assertThat(cache).isEmpty();
-        backingStore.put(0L,"0");
+        backingStore.put(0L, "0");
         String value = cache.get(0L);
         assertThat(value).isEqualTo("0");
     }
@@ -121,7 +121,7 @@ public class SCacheReadThroughTest {
         cache.loadAll(keys, false, new CompletionListener() {
             @Override
             public void onCompletion() {
-               completed.release();
+                completed.release();
             }
 
             @Override
@@ -178,9 +178,9 @@ public class SCacheReadThroughTest {
 
     @Test
     public void testListenForException() throws Exception {
-        MutableConfiguration<Long,String> configuration = new MutableConfiguration<>();
+        MutableConfiguration<Long, String> configuration = new MutableConfiguration<>();
         configuration.setReadThrough(true);
-        Factory<CacheLoader<Long,String>> failingLoaderFactory = () -> new SCacheLoader<>(k -> {
+        Factory<CacheLoader<Long, String>> failingLoaderFactory = () -> new SCacheLoader<>(k -> {
             throw new RuntimeException("pop!");
         });
         configuration.setCacheLoaderFactory(failingLoaderFactory);
