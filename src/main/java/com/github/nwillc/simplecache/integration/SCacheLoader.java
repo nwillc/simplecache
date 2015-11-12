@@ -24,6 +24,11 @@ import java.util.function.Function;
 
 import static java.util.stream.StreamSupport.stream;
 
+/**
+ * A CacheLoader implementation that accepts a loading Function as an argument to the constructor.
+ * @param <K> cache's key type
+ * @param <V> cache's value type
+ */
 public class SCacheLoader<K, V> implements CacheLoader<K, V> {
     private final Function<K, V> loader;
 

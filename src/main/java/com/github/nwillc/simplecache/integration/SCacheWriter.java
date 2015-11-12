@@ -22,6 +22,11 @@ import javax.cache.integration.CacheWriterException;
 import java.util.Collection;
 import java.util.function.Consumer;
 
+/**
+ * A CacheWriter implementation that accepts a delete and a write Consumer as arguments to the constructor.
+ * @param <K> cache's key type
+ * @param <V> cache's value type
+ */
 public class SCacheWriter<K, V> implements CacheWriter<K, V> {
     private final Consumer<Object> deleter;
     private final Consumer<Cache.Entry<? extends K, ? extends V>> writer;

@@ -34,13 +34,15 @@ import javax.cache.processor.EntryProcessorException;
 import javax.cache.processor.EntryProcessorResult;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class SCache<K, V> implements Cache<K, V> {
-    private final Map<K, SExpiryData> expiry = new ConcurrentHashMap<>();
-    private final Map<K, V> data = new ConcurrentHashMap<>();
+    private final ConcurrentMap<K, SExpiryData> expiry = new ConcurrentHashMap<>();
+    private final ConcurrentMap<K, V> data = new ConcurrentHashMap<>();
     private final CacheManager cacheManager;
     private final String name;
     private final MutableConfiguration<K, V> configuration;
@@ -48,6 +50,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     private final Optional<CacheWriter<? super K, ? super V>> writer;
     private final Factory<SExpiryData> expiryDataFactory;
     private final Optional<SCacheStatisticsMXBean> statistics;
+    private final AtomicBoolean closed = new AtomicBoolean(true);
     private Supplier<Long> clock = System::nanoTime;
 
     @SuppressWarnings("unchecked")
@@ -63,10 +66,12 @@ public final class SCache<K, V> implements Cache<K, V> {
                 new SExpiryData(clock, (ExpiryPolicy) ((MutableConfiguration) configuration).getExpiryPolicyFactory().create());
         statistics = ((MutableConfiguration) configuration).isStatisticsEnabled() ?
                 Optional.of(new SCacheStatisticsMXBean()) : Optional.<SCacheStatisticsMXBean>empty();
+        closed.set(false);
     }
 
     @Override
     public V get(K key) {
+        exceptionIfClosed();
         statistics.ifPresent(SCacheStatisticsMXBean::get);
         expiryCheck(key);
         V value = data.get(key);
@@ -89,6 +94,7 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public boolean containsKey(K key) {
+        exceptionIfClosed();
         return data.containsKey(key);
     }
 
@@ -118,6 +124,7 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public V getAndPut(K key, V value) {
+        exceptionIfClosed();
         statistics.ifPresent(SCacheStatisticsMXBean::get);
         statistics.ifPresent(SCacheStatisticsMXBean::put);
         expiryCheck(key);
@@ -134,6 +141,7 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public boolean putIfAbsent(K key, V value) {
+        exceptionIfClosed();
         boolean wasPut = data.putIfAbsent(key, value) == null;
         if (wasPut) {
             statistics.ifPresent(SCacheStatisticsMXBean::put);
@@ -145,6 +153,7 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public boolean remove(K key) {
+        exceptionIfClosed();
         boolean wasRemoved = data.remove(key) != null;
         if (wasRemoved) {
             statistics.ifPresent(SCacheStatisticsMXBean::remove);
@@ -156,6 +165,7 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public boolean remove(K key, V oldValue) {
+        exceptionIfClosed();
         boolean wasRemoved = data.remove(key, oldValue);
         if (wasRemoved) {
             statistics.ifPresent(SCacheStatisticsMXBean::remove);
@@ -175,6 +185,7 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public boolean replace(K key, V oldValue, V newValue) {
+        exceptionIfClosed();
         boolean wasPut = data.replace(key, oldValue, newValue);
         if (wasPut) {
             writeThrough(key, newValue);
@@ -185,6 +196,7 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public boolean replace(K key, V value) {
+        exceptionIfClosed();
         boolean wasPut = data.replace(key, value) != null;
         if (wasPut) {
             writeThrough(key, value);
@@ -195,6 +207,7 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public V getAndReplace(K key, V value) {
+        exceptionIfClosed();
         expiryCheck(key);
         expiry.computeIfPresent(key, (k, v) -> {
             statistics.ifPresent(SCacheStatisticsMXBean::get);
@@ -210,6 +223,7 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public void removeAll() {
+        exceptionIfClosed();
         removeAll(data.keySet());
     }
 
@@ -250,12 +264,15 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public void close() {
-
+        if (closed.compareAndSet(false,true)) {
+            cacheManager.destroyCache(name);
+            clear();
+        }
     }
 
     @Override
     public boolean isClosed() {
-        return false;
+        return closed.get();
     }
 
     @Override
@@ -283,7 +300,14 @@ public final class SCache<K, V> implements Cache<K, V> {
     }
 
     public Stream<Entry<K, V>> stream() {
+        exceptionIfClosed();
         return data.entrySet().stream().map(e -> (Entry) new SEntry<>(e));
+    }
+
+    private void exceptionIfClosed() {
+        if (closed.get()) {
+            throw new IllegalStateException("Cache is closed.");
+        }
     }
 
     private V readThrough(K key) {

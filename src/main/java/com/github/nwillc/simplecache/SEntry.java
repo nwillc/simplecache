@@ -20,7 +20,11 @@ import javax.cache.Cache;
 import java.util.AbstractMap;
 import java.util.Map;
 
-
+/**
+ * A simple key/value pair implementing Cache.Entry.
+ * @param <K> cache's key type
+ * @param <V> cache's value type
+ */
 public class SEntry<K, V> extends AbstractMap.SimpleEntry<K, V> implements Cache.Entry<K, V> {
 
     public SEntry(Map.Entry<? extends K, ? extends V> entry) {

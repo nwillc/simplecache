@@ -19,6 +19,9 @@ package com.github.nwillc.simplecache.managment;
 import javax.cache.management.CacheStatisticsMXBean;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * A bean that stores statics of a running cache is statistics are enabled.
+ */
 public class SCacheStatisticsMXBean implements CacheStatisticsMXBean {
     private final AtomicLong cacheHits = new AtomicLong(0L);
     private final AtomicLong cacheMisses = new AtomicLong(0L);
