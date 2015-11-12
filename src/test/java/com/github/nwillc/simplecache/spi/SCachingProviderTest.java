@@ -14,9 +14,9 @@
  *    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.github.nwillc.simplecache;
+package com.github.nwillc.simplecache.spi;
 
-import com.github.nwillc.simplecache.spi.SCachingProvider;
+import com.github.nwillc.simplecache.SCacheManager;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -71,7 +71,13 @@ public class SCachingProviderTest {
 
     @Test
     public void testClose() throws Exception {
+        CacheManager cm = cachingProvider.getCacheManager();
+        CacheManager cm2 = cachingProvider.getCacheManager();
+        assertThat(cm2).isEqualTo(cm);
         cachingProvider.close();
+        assertThat(cm.isClosed()).isTrue();
+        cm2 = cachingProvider.getCacheManager();
+        assertThat(cm2).isNotEqualTo(cm);
     }
 
     @Test

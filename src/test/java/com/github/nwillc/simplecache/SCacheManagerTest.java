@@ -116,12 +116,11 @@ public class SCacheManagerTest {
 
     @Test
     public void testClose() throws Exception {
-        cacheManager.close();
-    }
-
-    @Test
-    public void testIsClosed() throws Exception {
         assertThat(cacheManager.isClosed()).isFalse();
+        cacheManager.close();
+        assertThat(cacheManager.isClosed()).isTrue();
+        assertThatThrownBy(() -> cacheManager.destroyCache("foo")).isInstanceOf(IllegalStateException.class);
+        cacheManager.close();
     }
 
     @Test

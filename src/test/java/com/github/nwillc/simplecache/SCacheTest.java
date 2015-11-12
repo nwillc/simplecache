@@ -90,11 +90,6 @@ public class SCacheTest {
     }
 
     @Test
-    public void testIsClosed() throws Exception {
-        assertThat(cache.isClosed()).isFalse();
-    }
-
-    @Test
     public void testRegisterListener() throws Exception {
         assertThatThrownBy(() -> cache.registerCacheEntryListener(null)).isInstanceOf(UnsupportedOperationException.class);
     }

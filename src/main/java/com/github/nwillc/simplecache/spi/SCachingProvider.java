@@ -23,13 +23,13 @@ import javax.cache.configuration.OptionalFeature;
 import javax.cache.spi.CachingProvider;
 import java.net.URI;
 import java.util.Properties;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class SCachingProvider implements CachingProvider {
     private final Properties properties = new Properties();
-    private final CacheManager cacheManager;
+    private final AtomicReference<CacheManager> cacheManager = new AtomicReference<>();
 
     public SCachingProvider() {
-        cacheManager = new SCacheManager(this);
     }
 
     @Override
@@ -59,17 +59,23 @@ public class SCachingProvider implements CachingProvider {
 
     @Override
     public CacheManager getCacheManager() {
-        return cacheManager;
+        if (cacheManager.get() == null) {
+            cacheManager.set(new SCacheManager(this));
+        }
+        return cacheManager.get();
     }
 
     @Override
     public void close() {
-
+        CacheManager cm = cacheManager.getAndSet(null);
+        if (cm != null) {
+            cm.close();
+        }
     }
 
     @Override
     public void close(ClassLoader classLoader) {
-
+        close();
     }
 
     @Override
@@ -80,5 +86,9 @@ public class SCachingProvider implements CachingProvider {
     @Override
     public boolean isSupported(OptionalFeature optionalFeature) {
         return false;
+    }
+
+    public void removeCacheManager(SCacheManager cm) {
+        cacheManager.compareAndSet(cm, null);
     }
 }

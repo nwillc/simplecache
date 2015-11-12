@@ -16,6 +16,8 @@
 
 package com.github.nwillc.simplecache;
 
+import com.github.nwillc.simplecache.spi.SCachingProvider;
+
 import javax.cache.Cache;
 import javax.cache.CacheManager;
 import javax.cache.configuration.Configuration;
@@ -24,14 +26,17 @@ import java.net.URI;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SCacheManager implements CacheManager {
     private final Map<String, Cache> cacheMap = new ConcurrentHashMap<>();
     private final Properties properties = new Properties();
-    private final CachingProvider cachingProvider;
+    private final SCachingProvider cachingProvider;
+    private final AtomicBoolean closed = new AtomicBoolean(true);
 
-    public SCacheManager(CachingProvider cachingProvider) {
+    public SCacheManager(SCachingProvider cachingProvider) {
         this.cachingProvider = cachingProvider;
+        closed.set(false);
     }
 
     @Override
@@ -56,6 +61,7 @@ public class SCacheManager implements CacheManager {
 
     @Override
     public <K, V, C extends Configuration<K, V>> Cache<K, V> createCache(String cacheName, C configuration) throws IllegalArgumentException {
+        exceptionIfClosed();
         Cache<K, V> cache = new SCache<>(this, cacheName, configuration);
         cacheMap.put(cacheName, cache);
         return cache;
@@ -69,16 +75,19 @@ public class SCacheManager implements CacheManager {
     @SuppressWarnings("unchecked")
     @Override
     public <K, V> Cache<K, V> getCache(String cacheName) {
+        exceptionIfClosed();
         return cacheMap.get(cacheName);
     }
 
     @Override
     public Iterable<String> getCacheNames() {
+        exceptionIfClosed();
         return cacheMap.keySet();
     }
 
     @Override
     public void destroyCache(String cacheName) {
+        exceptionIfClosed();
         cacheMap.remove(cacheName);
     }
 
@@ -94,12 +103,16 @@ public class SCacheManager implements CacheManager {
 
     @Override
     public void close() {
-
+        if (closed.compareAndSet(false, true)) {
+            cachingProvider.removeCacheManager(this);
+            cacheMap.values().stream().forEach(Cache::close);
+            cacheMap.clear();
+        }
     }
 
     @Override
     public boolean isClosed() {
-        return false;
+        return closed.get();
     }
 
     @Override
@@ -109,5 +122,11 @@ public class SCacheManager implements CacheManager {
         }
 
         throw new IllegalArgumentException();
+    }
+
+    private void exceptionIfClosed() {
+        if (closed.get()) {
+            throw new IllegalStateException("CacheManager is closed.");
+        }
     }
 }
