@@ -14,12 +14,18 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-package com.github.nwillc.simplecache;
+package com.github.nwillc.simplecache.configuration;
 
 import org.junit.Test;
 
 import javax.cache.configuration.Factory;
+import javax.cache.configuration.MutableCacheEntryListenerConfiguration;
 import javax.cache.configuration.MutableConfiguration;
+import javax.cache.event.CacheEntryCreatedListener;
+import javax.cache.event.CacheEntryEvent;
+import javax.cache.event.CacheEntryEventFilter;
+import javax.cache.event.CacheEntryListener;
+import javax.cache.event.CacheEntryListenerException;
 import javax.cache.expiry.EternalExpiryPolicy;
 import javax.cache.expiry.ExpiryPolicy;
 
@@ -36,4 +42,25 @@ public class MutableConfigurationTest {
         assertThat(expiryPolicy).isNotNull();
         assertThat(expiryPolicy).isInstanceOf(EternalExpiryPolicy.class);
     }
+
+	@Test
+	public void shouldSupportListener() throws Exception {
+		Factory<CacheEntryListener<String,Long>> listenerFactory =
+				(Factory<CacheEntryListener<String, Long>>) ()
+						-> (CacheEntryCreatedListener<String, Long>) cacheEntryEvents -> {};
+
+		Factory<CacheEntryEventFilter<String,Long>> filterFactory =
+				(Factory<CacheEntryEventFilter<String,Long>>) ()
+					-> (CacheEntryEventFilter<String,Long>) evaluate -> true;
+
+		MutableCacheEntryListenerConfiguration<String, Long> listenerConfig
+				= new MutableCacheEntryListenerConfiguration<>(listenerFactory, filterFactory, true, true);
+
+		assertThat(listenerConfig).isNotNull();
+		MutableConfiguration<String, Long> configuration = new MutableConfiguration<>();
+		assertThat(configuration).isNotNull();
+		configuration.addCacheEntryListenerConfiguration(listenerConfig);
+		assertThat(configuration.getCacheEntryListenerConfigurations()).hasSize(1);
+	}
+
 }
