@@ -26,7 +26,9 @@ import javax.cache.configuration.CacheEntryListenerConfiguration;
 import javax.cache.configuration.Configuration;
 import javax.cache.configuration.Factory;
 import javax.cache.configuration.MutableConfiguration;
+import javax.cache.event.CacheEntryCreatedListener;
 import javax.cache.event.CacheEntryEvent;
+import javax.cache.event.CacheEntryListener;
 import javax.cache.event.EventType;
 import javax.cache.expiry.ExpiryPolicy;
 import javax.cache.integration.CacheLoader;
@@ -55,7 +57,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     private final Optional<SCacheStatisticsMXBean> statistics;
     private final AtomicBoolean closed = new AtomicBoolean(true);
     private Supplier<Long> clock = System::nanoTime;
-    private EnumMap<EventType,List<CacheEntryEvent<K,V>>> eventMap
+    private EnumMap<EventType,List<CacheEntryEvent>> eventMap
 			= new EnumMap<>(EventType.class);
 
     @SuppressWarnings("unchecked")
@@ -333,6 +335,7 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     private void writeThrough(K key, V value) {
 		eventMap.get(EventType.CREATED).add(new SCacheEntryEvent<>(this, EventType.CREATED, key, null, value));
+		dispatch();
         if (!(writer.isPresent() && configuration.isWriteThrough())) {
             return;
         }
@@ -368,4 +371,22 @@ public final class SCache<K, V> implements Cache<K, V> {
     public SCacheStatisticsMXBean getStatistics() {
         return statistics.orElse(null);
     }
+
+	@SuppressWarnings("unchecked")
+	private void dispatch() {
+		eventMap.entrySet().forEach(entry -> {
+			if (entry.getValue().size() > 0) {
+				switch (entry.getKey()) {
+					case CREATED:
+						configuration.getCacheEntryListenerConfigurations().forEach(conf -> {
+							CacheEntryListener<? super K, ? super V> cacheEntryListener = conf.getCacheEntryListenerFactory().create();
+							if (cacheEntryListener instanceof CacheEntryCreatedListener) {
+								((CacheEntryCreatedListener)cacheEntryListener).onCreated(entry.getValue());
+							}
+						});
+				}
+				entry.getValue().clear();
+			}
+		});
+	}
 }
