@@ -113,6 +113,9 @@ public class SCacheStatisticTest {
         cache.remove(0L, "foo");
         assertThat(statistics.getCacheRemovals()).isEqualTo(2L);
         cache.getAndRemove(0L);
+        assertThat(statistics.getCacheRemovals()).isEqualTo(2L);
+        cache.put(0L, "foo");
+        cache.getAndRemove(0L);
         assertThat(statistics.getCacheRemovals()).isEqualTo(3L);
     }
 

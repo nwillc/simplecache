@@ -16,6 +16,8 @@
 
 package com.github.nwillc.simplecache;
 
+import com.github.nwillc.simplecache.event.SCacheEntryEvent;
+
 import javax.cache.Cache;
 import javax.cache.configuration.CacheEntryListenerConfiguration;
 import javax.cache.configuration.CompleteConfiguration;
@@ -27,9 +29,11 @@ import java.util.function.Consumer;
 class SCacheListenerDispatcher<K, V> {
     private final EnumMap<EventType, List<CacheEntryEvent>> eventMap = new EnumMap<>(EventType.class);
     private final EnumMap<EventType, List<Consumer<Iterable<CacheEntryEvent>>>> listenersMap = new EnumMap<>(EventType.class);
+    private final Cache cache;
 
     @SuppressWarnings("unchecked")
     public SCacheListenerDispatcher(Cache<K, V> cache) {
+        this.cache = cache;
         CompleteConfiguration<K,V> configuration = cache.getConfiguration(CompleteConfiguration.class);
         Iterable<CacheEntryListenerConfiguration<K,V>> listenerConfigurations = configuration.getCacheEntryListenerConfigurations();
         listenerConfigurations.forEach(c -> {
@@ -68,27 +72,27 @@ class SCacheListenerDispatcher<K, V> {
     }
 
 
-    public void created(CacheEntryEvent event) {
+    public void created(K key, V value) {
         if (listenersMap.containsKey(EventType.CREATED)) {
-            eventMap.get(EventType.CREATED).add(event);
+            eventMap.get(EventType.CREATED).add(new SCacheEntryEvent<>(cache, EventType.CREATED, key, null, value));
         }
     }
 
-    public void expired(CacheEntryEvent event) {
+    public void expired(K key) {
         if (listenersMap.containsKey(EventType.EXPIRED)) {
-            eventMap.get(EventType.EXPIRED).add(event);
+            eventMap.get(EventType.EXPIRED).add(new SCacheEntryEvent<>(cache, EventType.EXPIRED, key, null, null));
         }
     }
 
-    public void removed(CacheEntryEvent event) {
+    public void removed(K key, V value) {
         if (listenersMap.containsKey(EventType.REMOVED)) {
-            eventMap.get(EventType.REMOVED).add(event);
+            eventMap.get(EventType.REMOVED).add(new SCacheEntryEvent<>(cache, EventType.REMOVED, key, value, null));
         }
     }
 
-    public void updated(CacheEntryEvent event) {
+    public void updated(K key, V old, V value) {
         if (listenersMap.containsKey(EventType.UPDATED)) {
-            eventMap.get(EventType.UPDATED).add(event);
+            eventMap.get(EventType.UPDATED).add(new SCacheEntryEvent<>(cache, EventType.UPDATED, key, old, value));
         }
     }
 

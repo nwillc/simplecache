@@ -17,7 +17,6 @@
 package com.github.nwillc.simplecache;
 
 
-import com.github.nwillc.simplecache.event.SCacheEntryEvent;
 import com.github.nwillc.simplecache.managment.SCacheStatisticsMXBean;
 
 import javax.cache.Cache;
@@ -26,7 +25,6 @@ import javax.cache.configuration.CacheEntryListenerConfiguration;
 import javax.cache.configuration.Configuration;
 import javax.cache.configuration.Factory;
 import javax.cache.configuration.MutableConfiguration;
-import javax.cache.event.EventType;
 import javax.cache.expiry.ExpiryPolicy;
 import javax.cache.integration.CacheLoader;
 import javax.cache.integration.CacheWriter;
@@ -53,7 +51,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     private final Factory<SExpiryData> expiryDataFactory;
     private final Optional<SCacheStatisticsMXBean> statistics;
     private final AtomicBoolean closed = new AtomicBoolean(true);
-    private final SCacheListenerDispatcher<K,V> dispatcher;
+    private final SCacheListenerDispatcher<K,V> eventListenerDispatcher;
     private Supplier<Long> clock = System::nanoTime;
 
     @SuppressWarnings("unchecked")
@@ -69,7 +67,7 @@ public final class SCache<K, V> implements Cache<K, V> {
                 new SExpiryData(clock, (ExpiryPolicy) ((MutableConfiguration) configuration).getExpiryPolicyFactory().create());
         statistics = ((MutableConfiguration) configuration).isStatisticsEnabled() ?
                 Optional.of(new SCacheStatisticsMXBean()) : Optional.<SCacheStatisticsMXBean>empty();
-        dispatcher = new SCacheListenerDispatcher<>(this);
+        eventListenerDispatcher = new SCacheListenerDispatcher<>(this);
         closed.set(false);
     }
 
@@ -133,6 +131,12 @@ public final class SCache<K, V> implements Cache<K, V> {
         statistics.ifPresent(SCacheStatisticsMXBean::put);
         expiryCheck(key);
         V old = data.put(key, value);
+        if (old == null) {
+            eventListenerDispatcher.created(key, value);
+        } else {
+            eventListenerDispatcher.updated(key, old, value);
+        }
+
         writeThrough(key, value);
         expiry.compute(key, (k, v) -> v == null ? expiryDataFactory.create() : v.update());
         return old;
@@ -149,6 +153,7 @@ public final class SCache<K, V> implements Cache<K, V> {
         boolean wasPut = data.putIfAbsent(key, value) == null;
         if (wasPut) {
             statistics.ifPresent(SCacheStatisticsMXBean::put);
+            eventListenerDispatcher.created(key, value);
             writeThrough(key, value);
             expiry.put(key, expiryDataFactory.create());
         }
@@ -182,7 +187,6 @@ public final class SCache<K, V> implements Cache<K, V> {
     @Override
     public V getAndRemove(K key) {
         V value = get(key);
-        statistics.ifPresent(SCacheStatisticsMXBean::remove);
         remove(key);
         return value;
     }
@@ -330,7 +334,6 @@ public final class SCache<K, V> implements Cache<K, V> {
     }
 
     private void writeThrough(K key, V value) {
-        dispatcher.created(new SCacheEntryEvent<>(this, EventType.CREATED, key, null, value));
         if (!(writer.isPresent() && configuration.isWriteThrough())) {
             return;
         }
@@ -340,7 +343,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     }
 
     private void removeThrough(K key) {
-        dispatcher.removed(new SCacheEntryEvent<>(this, EventType.REMOVED, key, null, null));
+        eventListenerDispatcher.removed(key, null);
         if (!(writer.isPresent() && configuration.isWriteThrough())) {
             return;
         }
@@ -356,7 +359,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     }
 
     private void expire(K key) {
-        dispatcher.expired(new SCacheEntryEvent<>(this, EventType.EXPIRED, key, null, null));
+        eventListenerDispatcher.expired(key);
         statistics.ifPresent(SCacheStatisticsMXBean::eviction);
         expiry.remove(key);
         data.remove(key);
