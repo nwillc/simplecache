@@ -26,9 +26,6 @@ import javax.cache.configuration.CacheEntryListenerConfiguration;
 import javax.cache.configuration.Configuration;
 import javax.cache.configuration.Factory;
 import javax.cache.configuration.MutableConfiguration;
-import javax.cache.event.CacheEntryCreatedListener;
-import javax.cache.event.CacheEntryEvent;
-import javax.cache.event.CacheEntryListener;
 import javax.cache.event.EventType;
 import javax.cache.expiry.ExpiryPolicy;
 import javax.cache.integration.CacheLoader;
@@ -56,9 +53,8 @@ public final class SCache<K, V> implements Cache<K, V> {
     private final Factory<SExpiryData> expiryDataFactory;
     private final Optional<SCacheStatisticsMXBean> statistics;
     private final AtomicBoolean closed = new AtomicBoolean(true);
+    private final SCacheListenerDispatcher<K,V> dispatcher;
     private Supplier<Long> clock = System::nanoTime;
-    private EnumMap<EventType,List<CacheEntryEvent>> eventMap
-			= new EnumMap<>(EventType.class);
 
     @SuppressWarnings("unchecked")
     public SCache(CacheManager cacheManager, String name, Configuration<K, V> configuration) {
@@ -73,9 +69,7 @@ public final class SCache<K, V> implements Cache<K, V> {
                 new SExpiryData(clock, (ExpiryPolicy) ((MutableConfiguration) configuration).getExpiryPolicyFactory().create());
         statistics = ((MutableConfiguration) configuration).isStatisticsEnabled() ?
                 Optional.of(new SCacheStatisticsMXBean()) : Optional.<SCacheStatisticsMXBean>empty();
-		for (EventType et : EventType.values()) {
-			eventMap.put(et, new ArrayList<>());
-		}
+        dispatcher = new SCacheListenerDispatcher<>(this);
         closed.set(false);
     }
 
@@ -275,7 +269,9 @@ public final class SCache<K, V> implements Cache<K, V> {
     @Override
     public void close() {
         if (closed.compareAndSet(false,true)) {
-            cacheManager.destroyCache(name);
+            if (!cacheManager.isClosed()) {
+                cacheManager.destroyCache(name);
+            }
             clear();
         }
     }
@@ -334,16 +330,17 @@ public final class SCache<K, V> implements Cache<K, V> {
     }
 
     private void writeThrough(K key, V value) {
-		eventMap.get(EventType.CREATED).add(new SCacheEntryEvent<>(this, EventType.CREATED, key, null, value));
-		dispatch();
+        dispatcher.created(new SCacheEntryEvent<>(this, EventType.CREATED, key, null, value));
         if (!(writer.isPresent() && configuration.isWriteThrough())) {
             return;
         }
         statistics.ifPresent(SCacheStatisticsMXBean::writeThrough);
         writer.get().write(new SEntry<>(key, value));
+
     }
 
     private void removeThrough(K key) {
+        dispatcher.removed(new SCacheEntryEvent<>(this, EventType.REMOVED, key, null, null));
         if (!(writer.isPresent() && configuration.isWriteThrough())) {
             return;
         }
@@ -359,6 +356,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     }
 
     private void expire(K key) {
+        dispatcher.expired(new SCacheEntryEvent<>(this, EventType.EXPIRED, key, null, null));
         statistics.ifPresent(SCacheStatisticsMXBean::eviction);
         expiry.remove(key);
         data.remove(key);
@@ -372,21 +370,4 @@ public final class SCache<K, V> implements Cache<K, V> {
         return statistics.orElse(null);
     }
 
-	@SuppressWarnings("unchecked")
-	private void dispatch() {
-		eventMap.entrySet().forEach(entry -> {
-			if (entry.getValue().size() > 0) {
-				switch (entry.getKey()) {
-					case CREATED:
-						configuration.getCacheEntryListenerConfigurations().forEach(conf -> {
-							CacheEntryListener<? super K, ? super V> cacheEntryListener = conf.getCacheEntryListenerFactory().create();
-							if (cacheEntryListener instanceof CacheEntryCreatedListener) {
-								((CacheEntryCreatedListener)cacheEntryListener).onCreated(entry.getValue());
-							}
-						});
-				}
-				entry.getValue().clear();
-			}
-		});
-	}
 }

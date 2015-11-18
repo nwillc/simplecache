@@ -59,7 +59,7 @@ public class SCachingProvider implements CachingProvider {
 
     @Override
     public CacheManager getCacheManager() {
-        if (cacheManager.get() == null) {
+        if (cacheManager.get() == null || cacheManager.get().isClosed()) {
             cacheManager.set(new SCacheManager(this));
         }
         return cacheManager.get();
