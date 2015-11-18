@@ -17,6 +17,7 @@
 package com.github.nwillc.simplecache;
 
 
+import com.github.nwillc.simplecache.event.SCacheEntryEvent;
 import com.github.nwillc.simplecache.managment.SCacheStatisticsMXBean;
 
 import javax.cache.Cache;
@@ -25,6 +26,8 @@ import javax.cache.configuration.CacheEntryListenerConfiguration;
 import javax.cache.configuration.Configuration;
 import javax.cache.configuration.Factory;
 import javax.cache.configuration.MutableConfiguration;
+import javax.cache.event.CacheEntryEvent;
+import javax.cache.event.EventType;
 import javax.cache.expiry.ExpiryPolicy;
 import javax.cache.integration.CacheLoader;
 import javax.cache.integration.CacheWriter;
@@ -52,6 +55,8 @@ public final class SCache<K, V> implements Cache<K, V> {
     private final Optional<SCacheStatisticsMXBean> statistics;
     private final AtomicBoolean closed = new AtomicBoolean(true);
     private Supplier<Long> clock = System::nanoTime;
+    private EnumMap<EventType,List<CacheEntryEvent<K,V>>> eventMap
+			= new EnumMap<>(EventType.class);
 
     @SuppressWarnings("unchecked")
     public SCache(CacheManager cacheManager, String name, Configuration<K, V> configuration) {
@@ -66,6 +71,9 @@ public final class SCache<K, V> implements Cache<K, V> {
                 new SExpiryData(clock, (ExpiryPolicy) ((MutableConfiguration) configuration).getExpiryPolicyFactory().create());
         statistics = ((MutableConfiguration) configuration).isStatisticsEnabled() ?
                 Optional.of(new SCacheStatisticsMXBean()) : Optional.<SCacheStatisticsMXBean>empty();
+		for (EventType et : EventType.values()) {
+			eventMap.put(et, new ArrayList<>());
+		}
         closed.set(false);
     }
 
@@ -324,6 +332,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     }
 
     private void writeThrough(K key, V value) {
+		eventMap.get(EventType.CREATED).add(new SCacheEntryEvent<>(this, EventType.CREATED, key, null, value));
         if (!(writer.isPresent() && configuration.isWriteThrough())) {
             return;
         }
