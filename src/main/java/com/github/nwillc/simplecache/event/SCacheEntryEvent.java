@@ -35,7 +35,7 @@ public class SCacheEntryEvent<K,V> extends CacheEntryEvent<K,V> {
 
 	@Override
 	public V getOldValue() {
-		return null;
+		return old.orElse(null);
 	}
 
 	@Override
