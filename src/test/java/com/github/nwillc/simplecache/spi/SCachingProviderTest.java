@@ -26,7 +26,10 @@ import java.util.Properties;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.when;
 
+@SuppressWarnings("unchecked")
 public class SCachingProviderTest {
     private CachingProvider cachingProvider;
 
@@ -67,6 +70,17 @@ public class SCachingProviderTest {
         CacheManager cacheManager = cachingProvider.getCacheManager();
         assertThat(cacheManager).isNotNull();
         assertThat(cacheManager).isInstanceOf(SCacheManager.class);
+    }
+
+    @Test
+    public void testGetCacheManagerNeverReturnClosed() throws Exception {
+        CacheManager cacheManager = cachingProvider.getCacheManager();
+        CacheManager spy = spy(cacheManager);
+        when(spy.isClosed()).thenReturn(true);
+        ((SCachingProvider)cachingProvider).setCacheManager(spy);
+        CacheManager cacheManager2 = cachingProvider.getCacheManager();
+        assertThat(cacheManager2.isClosed()).isFalse();
+        assertThat(cacheManager2).isNotEqualTo(cacheManager);
     }
 
     @Test
