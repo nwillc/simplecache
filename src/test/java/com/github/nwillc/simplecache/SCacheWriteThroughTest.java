@@ -35,6 +35,7 @@ import java.util.Map;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 
+@SuppressWarnings("unchecked")
 public class SCacheWriteThroughTest {
     private static final String NAME = "hoard";
     private final Map<Long, String> backingStore = new HashMap<>();
@@ -58,7 +59,7 @@ public class SCacheWriteThroughTest {
         assertThat(cache.getConfiguration(CompleteConfiguration.class).isWriteThrough()).isTrue();
     }
 
-    @SuppressWarnings("unchecked")
+
     @Test
     public void shouldWriteThrough() throws Exception {
         assertThat(backingStore).isEmpty();
@@ -68,7 +69,6 @@ public class SCacheWriteThroughTest {
         assertThat(backingStore).containsExactly(entry(0L, "foo"));
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testDeleteThrough() throws Exception {
         backingStore.put(0L, "foo");
@@ -93,7 +93,6 @@ public class SCacheWriteThroughTest {
         assertThat(backingStore.get(0L)).isNotNull();
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldHandleMissingFunctor() throws Exception {
         MutableConfiguration<Long, String> mutableConfiguration = cache.getConfiguration(MutableConfiguration.class);

@@ -43,6 +43,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.Assert.fail;
 
+@SuppressWarnings("unchecked")
 public class SCacheReadThroughTest {
     private static final String NAME = "hoard";
     private final Map<Long, String> backingStore = new HashMap<>();
@@ -99,7 +100,6 @@ public class SCacheReadThroughTest {
         assertThat(cache.get(1L)).isNull();
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldHandleNoFunctor() throws Exception {
         MutableConfiguration<Long, String> mutableConfiguration = cache.getConfiguration(MutableConfiguration.class);

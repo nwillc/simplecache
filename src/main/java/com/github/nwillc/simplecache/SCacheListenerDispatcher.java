@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 class SCacheListenerDispatcher<K, V> {
+    private static final long DISPATCH_PERIOD_MILLIS = TimeUnit.SECONDS.toMillis(1) / 2;
     private final EnumMap<EventType, List<CacheEntryEvent>> eventMap = new EnumMap<>(EventType.class);
     private final EnumMap<EventType, List<Consumer<Iterable<CacheEntryEvent>>>> listenersMap = new EnumMap<>(EventType.class);
     private final Cache cache;
@@ -67,7 +68,7 @@ class SCacheListenerDispatcher<K, V> {
                 public void run() {
                     dispatch();
                 }
-            }, TimeUnit.SECONDS.toMillis(1)/2, TimeUnit.SECONDS.toMillis(1)/2);
+            }, DISPATCH_PERIOD_MILLIS, DISPATCH_PERIOD_MILLIS);
         }
     }
 
@@ -96,7 +97,7 @@ class SCacheListenerDispatcher<K, V> {
         }
     }
 
-    public void dispatch() {
+    private void dispatch() {
         listenersMap.entrySet().forEach(kv -> {
             List<CacheEntryEvent> cacheEntryEvents = eventMap.get(kv.getKey());
             if (cacheEntryEvents.size() > 0) {
@@ -134,7 +135,7 @@ class SCacheListenerDispatcher<K, V> {
             }
         };
 
-        EventType eventType;
+        final EventType eventType;
 
         abstract Consumer<Iterable<CacheEntryEvent>> toConsumer(CacheEntryListener listener);
 

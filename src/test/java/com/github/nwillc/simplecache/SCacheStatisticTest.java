@@ -38,13 +38,13 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
+@SuppressWarnings("unchecked")
 public class SCacheStatisticTest {
     private SCache<Long, String> cache;
     private CacheManager cacheManager;
     private SCacheStatisticsMXBean statistics;
     private Map<Long, String> backingStore;
 
-    @SuppressWarnings("unchecked")
     @Before
     public void setUp() throws Exception {
         backingStore = new HashMap<>();
@@ -68,7 +68,6 @@ public class SCacheStatisticTest {
         assertThat(statistics).isNotNull();
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testIsNotEnabled() throws Exception {
         Cache cache2 = cacheManager.createCache(this.getClass().getSimpleName() + "-noStats", new MutableConfiguration<>());

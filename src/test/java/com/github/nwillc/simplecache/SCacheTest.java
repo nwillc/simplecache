@@ -39,6 +39,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 
+@SuppressWarnings("unchecked")
 public class SCacheTest {
     private static final String NAME = "hoard";
     private Cache<Long, String> cache;
@@ -97,9 +98,9 @@ public class SCacheTest {
     @Test
     public void shouldClear() throws Exception {
         cache.put(0L, "foo");
-        assertThat(cache.unwrap(SCache.class).stream().count()).isGreaterThan(0L);
+        assertThat(cache).hasSize(1);
         cache.clear();
-        assertThat(cache.unwrap(SCache.class).stream().count()).isEqualTo(0L);
+        assertThat(cache).hasSize(0);
     }
 
     @Test
@@ -119,13 +120,12 @@ public class SCacheTest {
         assertThat(cache.containsKey(0L)).isTrue();
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldStream() throws Exception {
-        assertThat(cache.unwrap(SCache.class).stream().count()).isEqualTo(0L);
+        assertThat(cache).hasSize(0);
         cache.put(0L, "foo");
-        assertThat(cache.unwrap(SCache.class).stream().count()).isEqualTo(1L);
-        assertThat(((SCache<Long, String>) cache.unwrap(SCache.class)).stream().anyMatch(e -> e.getKey().equals(0L))).isTrue();
+        assertThat(cache).hasSize(1);
+        assertThat(cache.containsKey(0L)).isTrue();
     }
 
     @Test
@@ -137,7 +137,6 @@ public class SCacheTest {
         assertThat(cache).isEmpty();
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testRemoveAllSet() throws Exception {
         cache.put(0L, "zero");
@@ -195,7 +194,6 @@ public class SCacheTest {
         assertThat(cache.get(0L)).isEqualTo("0");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testPutAll() throws Exception {
         Map<Long, String> map = new HashMap<>();
@@ -245,7 +243,6 @@ public class SCacheTest {
         assertThat(cache.get(0L)).isEqualTo("bar");
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void shouldExpire() throws Exception {
         MutableConfiguration<Long, String> conf = new MutableConfiguration<>();

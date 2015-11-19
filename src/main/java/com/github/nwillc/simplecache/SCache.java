@@ -37,8 +37,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public final class SCache<K, V> implements Cache<K, V> {
     private final ConcurrentMap<K, SExpiryData> expiry = new ConcurrentHashMap<>();
@@ -306,12 +304,7 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public Iterator<Entry<K, V>> iterator() {
-        return stream().collect(Collectors.toList()).iterator();
-    }
-
-    public Stream<Entry<K, V>> stream() {
-        exceptionIfClosed();
-        return data.entrySet().stream().map(e -> (Entry) new SEntry<>(e));
+        return data.entrySet().stream().map(e -> (Entry<K,V>) new SEntry<>(e)).iterator();
     }
 
     private void exceptionIfClosed() {

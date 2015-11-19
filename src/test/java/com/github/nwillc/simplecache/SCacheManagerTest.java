@@ -30,7 +30,7 @@ import java.util.Properties;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
-
+@SuppressWarnings("unchecked")
 public class SCacheManagerTest {
     private final MutableConfiguration configuration = new MutableConfiguration();
     private CacheManager cacheManager;

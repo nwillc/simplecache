@@ -40,10 +40,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
+@SuppressWarnings("unchecked")
 public class SCacheListenerTest {
     private CacheManager cacheManager;
-    private Factory<CacheEntryEventFilter<String,Long>> filterFactory =
-            () -> (CacheEntryEventFilter<String,Long>) evaluate -> true;
 
     @Before
     public void setUp() throws Exception {
@@ -67,7 +66,7 @@ public class SCacheListenerTest {
                 () -> (CacheEntryCreatedListener<String, Long>) cacheEntryEvents -> semaphore.release();
 
 		MutableCacheEntryListenerConfiguration<String, Long> listenerConfig
-				= new MutableCacheEntryListenerConfiguration<>(listenerFactory, filterFactory, false, true);
+				= new MutableCacheEntryListenerConfiguration<>(listenerFactory, null, false, true);
 
 		assertThat(listenerConfig).isNotNull();
 		MutableConfiguration<String, Long> configuration = new MutableConfiguration<>();
@@ -92,7 +91,7 @@ public class SCacheListenerTest {
                 () -> (CacheEntryUpdatedListener<String, Long>) cacheEntryEvents -> semaphore.release();
 
         MutableCacheEntryListenerConfiguration<String, Long> listenerConfig
-                = new MutableCacheEntryListenerConfiguration<>(listenerFactory, filterFactory, false, true);
+                = new MutableCacheEntryListenerConfiguration<>(listenerFactory, null, false, true);
 
         assertThat(listenerConfig).isNotNull();
         MutableConfiguration<String, Long> configuration = new MutableConfiguration<>();
@@ -118,7 +117,7 @@ public class SCacheListenerTest {
                 () -> (CacheEntryRemovedListener<String, Long>) cacheEntryEvents -> semaphore.release();
 
         MutableCacheEntryListenerConfiguration<String, Long> listenerConfig
-                = new MutableCacheEntryListenerConfiguration<>(listenerFactory, filterFactory, false, true);
+                = new MutableCacheEntryListenerConfiguration<>(listenerFactory, null, false, true);
 
         assertThat(listenerConfig).isNotNull();
         MutableConfiguration<String, Long> configuration = new MutableConfiguration<>();
@@ -135,6 +134,7 @@ public class SCacheListenerTest {
         }
     }
 
+
     @Test
     public void testExpiryListener() throws Exception {
         final Semaphore semaphore = new Semaphore(1);
@@ -145,7 +145,7 @@ public class SCacheListenerTest {
                 () -> (CacheEntryExpiredListener<String, Long>) cacheEntryEvents -> semaphore.release();
 
         MutableCacheEntryListenerConfiguration<String, Long> listenerConfig
-                = new MutableCacheEntryListenerConfiguration<>(listenerFactory, filterFactory, false, true);
+                = new MutableCacheEntryListenerConfiguration<>(listenerFactory, null, false, true);
 
         assertThat(listenerConfig).isNotNull();
         MutableConfiguration<String, Long> configuration = new MutableConfiguration<>();
@@ -155,7 +155,7 @@ public class SCacheListenerTest {
         AssertionsForInterfaceTypes.assertThat(configuration.getCacheEntryListenerConfigurations()).hasSize(1);
 
         Cache<String, Long> cache = cacheManager.createCache(this.getClass().getSimpleName(), configuration);
-        SCache<Long, String> sCache = cache.unwrap(SCache.class);
+        SCache sCache = cache.unwrap(SCache.class);
         final AtomicLong time = new AtomicLong(0L);
         sCache.setClock(time::get);
         cache.put("foo", 0L);
