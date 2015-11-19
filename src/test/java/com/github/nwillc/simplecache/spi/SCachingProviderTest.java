@@ -76,6 +76,7 @@ public class SCachingProviderTest {
     public void testGetCacheManagerNeverReturnClosed() throws Exception {
         CacheManager cacheManager = cachingProvider.getCacheManager();
         CacheManager spy = spy(cacheManager);
+        // Insure the CacheManager appears closed
         when(spy.isClosed()).thenReturn(true);
         ((SCachingProvider)cachingProvider).setCacheManager(spy);
         CacheManager cacheManager2 = cachingProvider.getCacheManager();
