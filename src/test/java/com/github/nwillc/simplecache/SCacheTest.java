@@ -17,6 +17,7 @@
 package com.github.nwillc.simplecache;
 
 import com.github.nwillc.simplecache.spi.SCachingProvider;
+import org.assertj.core.data.MapEntry;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,13 +29,12 @@ import javax.cache.configuration.MutableConfiguration;
 import javax.cache.expiry.CreatedExpiryPolicy;
 import javax.cache.expiry.Duration;
 import javax.cache.spi.CachingProvider;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
+import static java.util.stream.StreamSupport.stream;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
@@ -268,6 +268,14 @@ public class SCacheTest {
         assertThat(cache.isClosed()).isTrue();
         assertThatThrownBy(() -> cache.get(0L)).isInstanceOf(IllegalStateException.class);
         cache.close();
+    }
+
+    @Test
+    public void testIterator() throws Exception {
+        cache.put(0L, "foo");
+        cache.put(1L, "bar");
+        List<MapEntry> all = stream(cache.spliterator(), false).map(e -> entry(e.getKey(), e.getValue())).collect(Collectors.toList());
+        assertThat(all).containsExactly(entry(0L, "foo"), entry(1L, "bar"));
     }
 
     static class OtherConfig implements Configuration<Long, String> {
