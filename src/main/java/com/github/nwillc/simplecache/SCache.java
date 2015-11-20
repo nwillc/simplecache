@@ -25,6 +25,7 @@ import javax.cache.configuration.CacheEntryListenerConfiguration;
 import javax.cache.configuration.Configuration;
 import javax.cache.configuration.Factory;
 import javax.cache.configuration.MutableConfiguration;
+import javax.cache.event.EventType;
 import javax.cache.expiry.ExpiryPolicy;
 import javax.cache.integration.CacheLoader;
 import javax.cache.integration.CacheWriter;
@@ -104,7 +105,7 @@ public final class SCache<K, V> implements Cache<K, V> {
 
         try { // Should be in another thread
             for (K key : keys) {
-                if (containsKey(key) && replaceExistingValues) {
+                if (replaceExistingValues && containsKey(key)) {
                     expire(key);
                 }
                 get(key);
@@ -129,12 +130,7 @@ public final class SCache<K, V> implements Cache<K, V> {
         statistics.ifPresent(SCacheStatisticsMXBean::put);
         expiryCheck(key);
         V old = data.put(key, value);
-        if (old == null) {
-            eventListenerDispatcher.created(key, value);
-        } else {
-            eventListenerDispatcher.updated(key, old, value);
-        }
-
+        eventListenerDispatcher.event(old == null ? EventType.CREATED : EventType.UPDATED, key, value, old);
         writeThrough(key, value);
         expiry.compute(key, (k, v) -> v == null ? expiryDataFactory.create() : v.update());
         return old;
@@ -151,7 +147,7 @@ public final class SCache<K, V> implements Cache<K, V> {
         boolean wasPut = data.putIfAbsent(key, value) == null;
         if (wasPut) {
             statistics.ifPresent(SCacheStatisticsMXBean::put);
-            eventListenerDispatcher.created(key, value);
+            eventListenerDispatcher.event(EventType.CREATED, key, value, null);
             writeThrough(key, value);
             expiry.put(key, expiryDataFactory.create());
         }
@@ -336,7 +332,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     }
 
     private void removeThrough(K key) {
-        eventListenerDispatcher.removed(key, null);
+        eventListenerDispatcher.event(EventType.REMOVED, key, null, null);
         if (!(writer.isPresent() && configuration.isWriteThrough())) {
             return;
         }
@@ -352,7 +348,7 @@ public final class SCache<K, V> implements Cache<K, V> {
     }
 
     private void expire(K key) {
-        eventListenerDispatcher.expired(key);
+        eventListenerDispatcher.event(EventType.EXPIRED, key, null, null);
         statistics.ifPresent(SCacheStatisticsMXBean::eviction);
         expiry.remove(key);
         data.remove(key);

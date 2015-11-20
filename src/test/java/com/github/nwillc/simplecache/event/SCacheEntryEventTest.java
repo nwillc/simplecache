@@ -34,13 +34,13 @@ public class SCacheEntryEventTest {
 
     @Before
     public void setUp() throws Exception {
-        entryEvent = new SCacheEntryEvent<>(cache, EventType.CREATED, "foo", 1L, 0L);
+        entryEvent = new SCacheEntryEvent<>(cache, EventType.CREATED, "foo", 0L, 1L);
 
     }
 
     @Test
     public void testGetOldValueNotAvailable() throws Exception {
-        entryEvent = new SCacheEntryEvent<>(cache, EventType.CREATED, "foo", null, 0L);
+        entryEvent = new SCacheEntryEvent<>(cache, EventType.CREATED, "foo", 0L, null);
 
         assertThat(entryEvent.isOldValueAvailable()).isFalse();
         assertThat(entryEvent.getOldValue()).isNull();
