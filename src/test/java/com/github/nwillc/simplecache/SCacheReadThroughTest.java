@@ -38,6 +38,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
@@ -47,8 +48,12 @@ import static org.junit.Assert.fail;
 public class SCacheReadThroughTest {
     private static final String NAME = "hoard";
     private final Map<Long, String> backingStore = new HashMap<>();
+    private final AtomicInteger readThroughs = new AtomicInteger(0);
     private final Factory<CacheLoader<Long, String>> factory =
-            (Factory<CacheLoader<Long, String>>) () -> new SCacheLoader<>(backingStore::get);
+            (Factory<CacheLoader<Long, String>>) () -> new SCacheLoader<>(k -> {
+                readThroughs.incrementAndGet();
+                return backingStore.get(k);
+            });
     private Cache<Long, String> cache;
     private CacheManager cacheManager;
 
@@ -60,6 +65,7 @@ public class SCacheReadThroughTest {
         configuration.setReadThrough(true);
         configuration.setCacheLoaderFactory(factory);
         cache = cacheManager.createCache(NAME, configuration);
+        readThroughs.set(0);
     }
 
     @Test
@@ -73,6 +79,19 @@ public class SCacheReadThroughTest {
         backingStore.put(0L, "0");
         String value = cache.get(0L);
         assertThat(value).isEqualTo("0");
+        assertThat(readThroughs.get()).isEqualTo(1);
+    }
+
+    @Test
+    public void shouldReadThroughOnlyOnce() throws Exception {
+        assertThat(cache).isEmpty();
+        backingStore.put(0L, "0");
+        String value = cache.get(0L);
+        assertThat(value).isEqualTo("0");
+        assertThat(readThroughs.get()).isEqualTo(1);
+        value = cache.get(0L);
+        assertThat(value).isEqualTo("0");
+        assertThat(readThroughs.get()).isEqualTo(1);
     }
 
     @Test
@@ -81,6 +100,7 @@ public class SCacheReadThroughTest {
         assertThat(backingStore).isEmpty();
         String value = cache.get(0L);
         assertThat(value).isNull();
+        assertThat(readThroughs.get()).isEqualTo(1);
     }
 
     @Test
@@ -89,15 +109,18 @@ public class SCacheReadThroughTest {
         cache.put(0L, "bar");
         String value = cache.get(0L);
         assertThat(value).isEqualTo("bar");
+        assertThat(readThroughs.get()).isEqualTo(0);
     }
 
     @Test
     public void shouldReadThroughShutOff() throws Exception {
         backingStore.put(0L, "0");
         assertThat(cache.get(0L)).isEqualTo("0");
+        assertThat(readThroughs.get()).isEqualTo(1);
         cache.getConfiguration(MutableConfiguration.class).setReadThrough(false);
         backingStore.put(1L, "1");
         assertThat(cache.get(1L)).isNull();
+        assertThat(readThroughs.get()).isEqualTo(1);
     }
 
     @Test
@@ -135,8 +158,10 @@ public class SCacheReadThroughTest {
         if (!completed.tryAcquire(1, 5, TimeUnit.SECONDS)) {
             fail("never completed");
         }
+        assertThat(readThroughs.get()).isEqualTo(1);
         assertThat(cache.get(0L)).isEqualTo("old");
         assertThat(cache.containsKey(1L)).isTrue();
+
     }
 
     @Test
@@ -147,6 +172,19 @@ public class SCacheReadThroughTest {
         assertThat(cache.containsKey(0L)).isFalse();
         cache.loadAll(keys, false, null);
         assertThat(cache.containsKey(0L)).isTrue();
+    }
+
+    @Test
+    public void testLoadAllLoadsCache() throws Exception {
+        backingStore.put(0L, "0");
+        Set<Long> keys = new HashSet<>();
+        keys.add(0L);
+        assertThat(cache.containsKey(0L)).isFalse();
+        cache.loadAll(keys, false, null);
+        assertThat(cache).hasSize(1);
+        assertThat(readThroughs.get()).isEqualTo(1);
+        assertThat(cache.get(0L)).isEqualTo("0");
+        assertThat(readThroughs.get()).isEqualTo(1);
     }
 
     @Test
@@ -166,6 +204,7 @@ public class SCacheReadThroughTest {
         } catch (Exception e) {
             fail(e.toString());
         }
+        assertThat(readThroughs.get()).isEqualTo(keys.size());
         assertThat(cache.get(0L)).isEqualTo("0");
         assertThat(cache.containsKey(1L)).isTrue();
     }
