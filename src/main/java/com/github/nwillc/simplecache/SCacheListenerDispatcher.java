@@ -26,6 +26,11 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
+/**
+ * The event listening code needed by the Cache is largely found here.
+ * @param <K> key type
+ * @param <V> value type
+ */
 class SCacheListenerDispatcher<K, V> implements SListenerList<K, V> {
     private static final long DISPATCH_PERIOD_MILLIS = TimeUnit.SECONDS.toMillis(1) / 2;
     private final EnumMap<EventType, List<CacheEntryEvent>> eventMap = new EnumMap<>(EventType.class);
