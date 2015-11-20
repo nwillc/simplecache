@@ -39,7 +39,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
-public final class SCache<K, V> implements Cache<K, V> {
+public final class SCache<K, V> implements Cache<K, V>, SListenerList<K,V> {
     private final ConcurrentMap<K, SExpiryData> expiry = new ConcurrentHashMap<>();
     private final ConcurrentMap<K, V> data = new ConcurrentHashMap<>();
     private final CacheManager cacheManager;
@@ -290,12 +290,12 @@ public final class SCache<K, V> implements Cache<K, V> {
 
     @Override
     public void registerCacheEntryListener(CacheEntryListenerConfiguration<K, V> cacheEntryListenerConfiguration) {
-        throw new UnsupportedOperationException();
+        eventListenerDispatcher.registerCacheEntryListener(cacheEntryListenerConfiguration);
     }
 
     @Override
     public void deregisterCacheEntryListener(CacheEntryListenerConfiguration<K, V> cacheEntryListenerConfiguration) {
-        throw new UnsupportedOperationException();
+        eventListenerDispatcher.deregisterCacheEntryListener(cacheEntryListenerConfiguration);
     }
 
     @Override

@@ -24,8 +24,9 @@ import org.junit.Test;
 import javax.cache.Cache;
 import javax.cache.CacheManager;
 import javax.cache.Caching;
-import javax.cache.configuration.Configuration;
-import javax.cache.configuration.MutableConfiguration;
+import javax.cache.configuration.*;
+import javax.cache.event.CacheEntryCreatedListener;
+import javax.cache.event.CacheEntryListener;
 import javax.cache.expiry.CreatedExpiryPolicy;
 import javax.cache.expiry.Duration;
 import javax.cache.spi.CachingProvider;
@@ -87,12 +88,17 @@ public class SCacheTest {
 
     @Test
     public void testDeregisterListener() throws Exception {
-        assertThatThrownBy(() -> cache.deregisterCacheEntryListener(null)).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> cache.invokeAll(null, null)).isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
     public void testRegisterListener() throws Exception {
-        assertThatThrownBy(() -> cache.registerCacheEntryListener(null)).isInstanceOf(UnsupportedOperationException.class);
+        Factory<CacheEntryListener<Long,String>> listenerFactory =
+                () -> (CacheEntryCreatedListener<Long, String>) cacheEntryEvents -> {};
+        CacheEntryListenerConfiguration<Long, String> cacheEntryListenerConfiguration =
+                new MutableCacheEntryListenerConfiguration<>(listenerFactory, null, false, false);
+
+        cache.registerCacheEntryListener(cacheEntryListenerConfiguration);
     }
 
     @Test

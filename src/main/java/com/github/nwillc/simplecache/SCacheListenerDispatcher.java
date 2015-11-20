@@ -26,7 +26,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
-class SCacheListenerDispatcher<K, V> {
+class SCacheListenerDispatcher<K, V> implements SListenerList<K, V> {
     private static final long DISPATCH_PERIOD_MILLIS = TimeUnit.SECONDS.toMillis(1) / 2;
     private final EnumMap<EventType, List<CacheEntryEvent>> eventMap = new EnumMap<>(EventType.class);
     private final EnumMap<EventType, List<Consumer<Iterable<CacheEntryEvent>>>> listenersMap = new EnumMap<>(EventType.class);
@@ -35,41 +35,36 @@ class SCacheListenerDispatcher<K, V> {
     @SuppressWarnings("unchecked")
     public SCacheListenerDispatcher(Cache<K, V> cache) {
         this.cache = cache;
-        CompleteConfiguration<K,V> configuration = cache.getConfiguration(CompleteConfiguration.class);
-        Iterable<CacheEntryListenerConfiguration<K,V>> listenerConfigurations = configuration.getCacheEntryListenerConfigurations();
-        listenerConfigurations.forEach(c -> {
-            CacheEntryListener<? super K, ? super V> cacheEntryListener = c.getCacheEntryListenerFactory().create();
-            ListenerEventType listenerEventType = null;
+        CompleteConfiguration<K, V> configuration = cache.getConfiguration(CompleteConfiguration.class);
+        Iterable<CacheEntryListenerConfiguration<K, V>> listenerConfigurations = configuration.getCacheEntryListenerConfigurations();
+        listenerConfigurations.forEach(this::registerCacheEntryListener);
 
-            // Hate this cascading if, but the only way to identify the the listener type is by the interface it implements!
-            if (cacheEntryListener instanceof CacheEntryCreatedListener) {
-                listenerEventType = ListenerEventType.CREATED;
-            } else if (cacheEntryListener instanceof CacheEntryExpiredListener) {
-                listenerEventType = ListenerEventType.EXPIRED;
-            } else if (cacheEntryListener instanceof CacheEntryRemovedListener) {
-                listenerEventType = ListenerEventType.REMOVED;
-            } else if (cacheEntryListener instanceof CacheEntryUpdatedListener) {
-                listenerEventType = ListenerEventType.UPDATED;
+        new Timer(this.getClass().getSimpleName(), false).schedule(new TimerTask() {
+            @Override
+            public void run() {
+                dispatch();
             }
+        }, DISPATCH_PERIOD_MILLIS, DISPATCH_PERIOD_MILLIS);
+    }
 
-            if (listenerEventType != null) {
-                if (!listenersMap.containsKey(listenerEventType.eventType)) {
-                    listenersMap.put(listenerEventType.eventType, new ArrayList<>());
-                    eventMap.put(listenerEventType.eventType, new ArrayList<>());
-                }
+    @Override
+    public void registerCacheEntryListener(CacheEntryListenerConfiguration<K, V> cacheEntryListenerConfiguration) {
+        CacheEntryListener<? super K, ? super V> cacheEntryListener = cacheEntryListenerConfiguration.getCacheEntryListenerFactory().create();
+        ListenerEventType listenerEventType = ListenerEventType.valueOf(cacheEntryListener);
+        List<Consumer<Iterable<CacheEntryEvent>>> consumers = listenersMap.get(listenerEventType.eventType);
 
-                listenersMap.get(listenerEventType.eventType).add(listenerEventType.toConsumer(cacheEntryListener));
-            }
-        });
-
-        if (listenersMap.size() > 0) {
-            new Timer(this.getClass().getSimpleName(),false).schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    dispatch();
-                }
-            }, DISPATCH_PERIOD_MILLIS, DISPATCH_PERIOD_MILLIS);
+        if (consumers == null) {
+            consumers = new ArrayList<>();
+            listenersMap.put(listenerEventType.eventType, consumers);
+            eventMap.put(listenerEventType.eventType, new ArrayList<>());
         }
+
+        consumers.add(listenerEventType.toConsumer(cacheEntryListener));
+    }
+
+    @Override
+    public void deregisterCacheEntryListener(CacheEntryListenerConfiguration<K, V> cacheEntryListenerConfiguration) {
+        throw new UnsupportedOperationException();
     }
 
     public void event(EventType type, K key, V value, V old) {
@@ -95,13 +90,13 @@ class SCacheListenerDispatcher<K, V> {
         CREATED(EventType.CREATED) {
             @Override
             Consumer<Iterable<CacheEntryEvent>> toConsumer(CacheEntryListener listener) {
-                    return ((CacheEntryCreatedListener) listener)::onCreated;
+                return ((CacheEntryCreatedListener) listener)::onCreated;
             }
         },
         EXPIRED(EventType.EXPIRED) {
             @Override
             Consumer<Iterable<CacheEntryEvent>> toConsumer(CacheEntryListener listener) {
-                    return ((CacheEntryExpiredListener) listener)::onExpired;
+                return ((CacheEntryExpiredListener) listener)::onExpired;
             }
         },
         REMOVED(EventType.REMOVED) {
@@ -123,6 +118,20 @@ class SCacheListenerDispatcher<K, V> {
 
         ListenerEventType(EventType eventType) {
             this.eventType = eventType;
+        }
+
+        static ListenerEventType valueOf(CacheEntryListener cacheEntryListener) {
+            if (cacheEntryListener instanceof CacheEntryCreatedListener) {
+                return CREATED;
+            } else if (cacheEntryListener instanceof CacheEntryExpiredListener) {
+                return EXPIRED;
+            } else if (cacheEntryListener instanceof CacheEntryRemovedListener) {
+                return REMOVED;
+            } else if (cacheEntryListener instanceof CacheEntryUpdatedListener) {
+                return UPDATED;
+            }
+
+            throw new IllegalArgumentException("Unknown CacheEntryListener subclass: " + cacheEntryListener.getClass().getSimpleName());
         }
     }
 }
