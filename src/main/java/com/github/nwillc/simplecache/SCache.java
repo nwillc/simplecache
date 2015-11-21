@@ -89,7 +89,12 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K,V> {
     @Override
     public Map<K, V> getAll(Set<? extends K> keys) {
         Map<K, V> retMap = new HashMap<>();
-        keys.stream().forEach(k -> data.computeIfPresent(k, retMap::put));
+        keys.stream().forEach(k -> {
+            V value = get(k);
+            if (value != null) {
+                retMap.put(k,value);
+            }
+        });
         return retMap;
     }
 

@@ -68,6 +68,7 @@ public class SCacheTest {
         keys.add(0L);
         keys.add(1L);
         assertThat(cache.getAll(keys)).containsExactly(entry(0L, "zero"), entry(1L, "one"));
+        assertThat(cache).hasSize(3);
     }
 
     @Test

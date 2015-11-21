@@ -23,6 +23,7 @@ import javax.cache.configuration.CacheEntryListenerConfiguration;
 import javax.cache.configuration.CompleteConfiguration;
 import javax.cache.event.*;
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
@@ -33,7 +34,7 @@ import java.util.function.Consumer;
  */
 class SCacheListenerDispatcher<K, V> implements SListenerList<K, V> {
     private static final long DISPATCH_PERIOD_MILLIS = TimeUnit.SECONDS.toMillis(1) / 2;
-    private final EnumMap<EventType, List<CacheEntryEvent>> eventMap = new EnumMap<>(EventType.class);
+    private final EnumMap<EventType, Deque<CacheEntryEvent>> eventMap = new EnumMap<>(EventType.class);
     private final EnumMap<EventType, List<Consumer<Iterable<CacheEntryEvent>>>> listenersMap = new EnumMap<>(EventType.class);
     private final Cache cache;
 
@@ -61,7 +62,7 @@ class SCacheListenerDispatcher<K, V> implements SListenerList<K, V> {
         if (consumers == null) {
             consumers = new ArrayList<>();
             listenersMap.put(listenerEventType.eventType, consumers);
-            eventMap.put(listenerEventType.eventType, new ArrayList<>());
+            eventMap.put(listenerEventType.eventType, new ConcurrentLinkedDeque<>());
         }
 
         consumers.add(listenerEventType.toConsumer(cacheEntryListener));
@@ -73,18 +74,25 @@ class SCacheListenerDispatcher<K, V> implements SListenerList<K, V> {
     }
 
     public void event(EventType type, K key, V value, V old) {
-        List<CacheEntryEvent> events = eventMap.get(type);
+        Deque<CacheEntryEvent> events = eventMap.get(type);
         if (events != null) {
-            events.add(new SCacheEntryEvent<>(cache, type, key, value, old));
+            events.addFirst(new SCacheEntryEvent<>(cache, type, key, value, old));
         }
     }
 
     private void dispatch() {
-        listenersMap.entrySet().forEach(kv -> {
-            List<CacheEntryEvent> cacheEntryEvents = eventMap.get(kv.getKey());
-            if (cacheEntryEvents.size() > 0) {
-                kv.getValue().forEach(c -> c.accept(cacheEntryEvents));
-                cacheEntryEvents.clear();
+        listenersMap.entrySet().forEach(listenerEntry -> {
+            Deque<CacheEntryEvent> deque = eventMap.get(listenerEntry.getKey());
+            if (deque != null) {
+                List<CacheEntryEvent> events = new ArrayList<>(deque.size() + 10);
+                CacheEntryEvent event = deque.pollLast();
+                while (event != null) {
+                    events.add(event);
+                    event = deque.pollLast();
+                }
+                if (events.size() > 0) {
+                    listenerEntry.getValue().forEach(c -> c.accept(events));
+                }
             }
         });
     }
