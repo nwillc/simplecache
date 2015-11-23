@@ -91,7 +91,7 @@ public class SCacheTest  {
 
     @Test
     public void testDeregisterListener() throws Exception {
-        assertThatThrownBy(() -> cache.deregisterCacheEntryListener(null)).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> cache.deregisterCacheEntryListener(null)   ).isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
