@@ -41,7 +41,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.assertj.core.data.MapEntry.entry;
 
 @SuppressWarnings("unchecked")
-public class SCacheTest {
+public class SCacheTest  {
     private static final String NAME = "hoard";
     private Cache<Long, String> cache;
     private CacheManager cacheManager;
@@ -100,6 +100,11 @@ public class SCacheTest {
                 new MutableCacheEntryListenerConfiguration<>(listenerFactory, null, false, false);
 
         cache.registerCacheEntryListener(cacheEntryListenerConfiguration);
+    }
+
+    @Test
+    public void testDeregisterCacheEntryListener() throws Exception {
+        assertThatThrownBy(() -> cache.deregisterCacheEntryListener(null)).isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test

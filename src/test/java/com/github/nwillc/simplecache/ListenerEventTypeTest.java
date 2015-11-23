@@ -18,9 +18,11 @@ package com.github.nwillc.simplecache;
 
 import org.junit.Test;
 
+import javax.cache.event.CacheEntryListener;
 import javax.cache.event.EventType;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 public class ListenerEventTypeTest {
 
@@ -31,4 +33,11 @@ public class ListenerEventTypeTest {
             assertThat(SCacheListenerDispatcher.ListenerEventType.valueOf(et.name())).isNotNull();
         }
     }
+
+    @Test
+    public void testBadListenerType() throws Exception {
+        assertThatThrownBy(() -> SCacheListenerDispatcher.ListenerEventType.valueOf(new UnkownEventListener())).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    class UnkownEventListener implements CacheEntryListener {}
 }
