@@ -25,7 +25,7 @@ import javax.cache.Cache;
 import javax.cache.CacheManager;
 import javax.cache.Caching;
 import javax.cache.configuration.*;
-import javax.cache.event.CacheEntryCreatedListener;
+import javax.cache.event.CacheEntryExpiredListener;
 import javax.cache.event.CacheEntryListener;
 import javax.cache.expiry.CreatedExpiryPolicy;
 import javax.cache.expiry.Duration;
@@ -95,10 +95,11 @@ public class SCacheTest  {
     @Test
     public void testRegisterListener() throws Exception {
         Factory<CacheEntryListener<Long,String>> listenerFactory =
-                () -> (CacheEntryCreatedListener<Long, String>) cacheEntryEvents -> {};
+                () -> (CacheEntryExpiredListener<Long, String>) cacheEntryEvents -> {};
         CacheEntryListenerConfiguration<Long, String> cacheEntryListenerConfiguration =
                 new MutableCacheEntryListenerConfiguration<>(listenerFactory, null, false, false);
 
+        cache.registerCacheEntryListener(cacheEntryListenerConfiguration);
         cache.registerCacheEntryListener(cacheEntryListenerConfiguration);
     }
 

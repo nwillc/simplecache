@@ -17,7 +17,6 @@
 package com.github.nwillc.simplecache;
 
 import javax.cache.Cache;
-import java.util.AbstractMap;
 import java.util.Map;
 
 /**
@@ -25,14 +24,27 @@ import java.util.Map;
  * @param <K> cache's key type
  * @param <V> cache's value type
  */
-public class SEntry<K, V> extends AbstractMap.SimpleEntry<K, V> implements Cache.Entry<K, V> {
-
-    public SEntry(Map.Entry<? extends K, ? extends V> entry) {
-        super(entry);
-    }
+public class SEntry<K, V> implements Cache.Entry<K, V> {
+    private K key;
+    protected V value;
 
     public SEntry(K key, V value) {
-        super(key, value);
+        this.key = key;
+        this.value = value;
+    }
+
+    SEntry(Map.Entry<K,V> entry) {
+        this(entry.getKey(), entry.getValue());
+    }
+
+    @Override
+    public K getKey() {
+        return key;
+    }
+
+    @Override
+    public V getValue() {
+        return value;
     }
 
     @Override
@@ -42,5 +54,21 @@ public class SEntry<K, V> extends AbstractMap.SimpleEntry<K, V> implements Cache
         }
 
         throw new IllegalArgumentException();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SEntry)) return false;
+
+        SEntry<?, ?> sEntry = (SEntry<?, ?>) o;
+
+        return getKey().equals(sEntry.getKey());
+
+    }
+
+    @Override
+    public int hashCode() {
+        return getKey().hashCode();
     }
 }
