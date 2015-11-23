@@ -18,6 +18,7 @@ package com.github.nwillc.simplecache;
 
 
 import com.github.nwillc.simplecache.managment.SCacheStatisticsMXBean;
+import com.github.nwillc.simplecache.processor.SMutableEntry;
 
 import javax.cache.Cache;
 import javax.cache.CacheManager;
@@ -251,7 +252,11 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K,V> {
 
     @Override
     public <T> T invoke(K key, EntryProcessor<K, V, T> entryProcessor, Object... arguments) throws EntryProcessorException {
-        throw new UnsupportedOperationException();
+        V value = get(key);
+        SMutableEntry<K,V> entry = new SMutableEntry<>(this,
+                (value != null) ? key : null,
+                value);
+        return entryProcessor.process(entry, arguments);
     }
 
     @Override

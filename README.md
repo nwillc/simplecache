@@ -4,7 +4,7 @@ management, or implement the annotations, and only partially supports events. Wh
 I wanted something even simpler and cleaner then the reference implementation, with JDK8 improvements. Read-through and
 write-through are implemented synchronously. Basically this is only useful to front things like slow out of process requests.
 
-Currently this package includes under a dozen classes, depends only on the javax.cache-api artifact,
+Currently this package includes about a dozen classes, depends only on the javax.cache-api artifact,
 and builds to under 50K.
 
 -----

@@ -29,6 +29,7 @@ import javax.cache.event.CacheEntryExpiredListener;
 import javax.cache.event.CacheEntryListener;
 import javax.cache.expiry.CreatedExpiryPolicy;
 import javax.cache.expiry.Duration;
+import javax.cache.processor.EntryProcessor;
 import javax.cache.spi.CachingProvider;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -123,7 +124,12 @@ public class SCacheTest  {
 
     @Test
     public void testInvoke() throws Exception {
-        assertThatThrownBy(() -> cache.invoke(null, null)).isInstanceOf(UnsupportedOperationException.class);
+        EntryProcessor<Long, String, String> processor =
+                (entry, arguments) -> ((entry.getKey() == null) ? "na" : entry.getValue()) + arguments[0];
+
+        cache.put(0L, "foo");
+        assertThat(cache.invoke(0L, processor, "bar")).isEqualTo("foobar");
+        assertThat(cache.invoke(1L, processor, "ughty")).isEqualTo("naughty");
     }
 
     @Test
