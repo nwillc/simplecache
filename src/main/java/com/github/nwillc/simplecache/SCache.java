@@ -40,7 +40,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
-public final class SCache<K, V> implements Cache<K, V>, SListenerList<K,V> {
+public final class SCache<K, V> implements Cache<K, V>, SListenerList<K, V> {
     private final ConcurrentMap<K, SExpiryData> expiry = new ConcurrentHashMap<>();
     private final ConcurrentMap<K, V> data = new ConcurrentHashMap<>();
     private final CacheManager cacheManager;
@@ -51,7 +51,7 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K,V> {
     private final Factory<SExpiryData> expiryDataFactory;
     private final Optional<SCacheStatisticsMXBean> statistics;
     private final AtomicBoolean closed = new AtomicBoolean(true);
-    private final SCacheListenerDispatcher<K,V> eventListenerDispatcher;
+    private final SCacheListenerDispatcher<K, V> eventListenerDispatcher;
     private Supplier<Long> clock = System::nanoTime;
 
     @SuppressWarnings("unchecked")
@@ -93,7 +93,7 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K,V> {
         keys.stream().forEach(k -> {
             V value = get(k);
             if (value != null) {
-                retMap.put(k,value);
+                retMap.put(k, value);
             }
         });
         return retMap;
@@ -253,7 +253,7 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K,V> {
     @Override
     public <T> T invoke(K key, EntryProcessor<K, V, T> entryProcessor, Object... arguments) throws EntryProcessorException {
         V value = get(key);
-        SMutableEntry<K,V> entry = new SMutableEntry<>(this,
+        SMutableEntry<K, V> entry = new SMutableEntry<>(this,
                 (value != null) ? key : null,
                 value);
         return entryProcessor.process(entry, arguments);
@@ -261,7 +261,15 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K,V> {
 
     @Override
     public <T> Map<K, EntryProcessorResult<T>> invokeAll(Set<? extends K> keys, EntryProcessor<K, V, T> entryProcessor, Object... arguments) {
-        throw new UnsupportedOperationException();
+        Map<K, EntryProcessorResult<T>> resultMap = new HashMap<>();
+        Cache<K,V> cache = this;
+        keys.stream().forEach(k -> {
+            V v = get(k);
+            if (v != null) {
+                resultMap.put(k, () -> entryProcessor.process(new SMutableEntry<>(cache, k, v), arguments));
+            }
+        });
+        return resultMap;
     }
 
     @Override
@@ -276,7 +284,7 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K,V> {
 
     @Override
     public void close() {
-        if (closed.compareAndSet(false,true)) {
+        if (closed.compareAndSet(false, true)) {
             if (!cacheManager.isClosed()) {
                 cacheManager.destroyCache(name);
             }
@@ -310,7 +318,7 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K,V> {
 
     @Override
     public Iterator<Entry<K, V>> iterator() {
-        return data.entrySet().stream().map(e -> (Entry<K,V>) new SEntry<>(e)).iterator();
+        return data.entrySet().stream().map(e -> (Entry<K, V>) new SEntry<>(e)).iterator();
     }
 
     private void exceptionIfClosed() {

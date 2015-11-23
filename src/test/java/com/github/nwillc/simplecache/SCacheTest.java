@@ -30,6 +30,7 @@ import javax.cache.event.CacheEntryListener;
 import javax.cache.expiry.CreatedExpiryPolicy;
 import javax.cache.expiry.Duration;
 import javax.cache.processor.EntryProcessor;
+import javax.cache.processor.EntryProcessorResult;
 import javax.cache.spi.CachingProvider;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -90,7 +91,7 @@ public class SCacheTest  {
 
     @Test
     public void testDeregisterListener() throws Exception {
-        assertThatThrownBy(() -> cache.invokeAll(null, null)).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> cache.deregisterCacheEntryListener(null)).isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
@@ -119,7 +120,18 @@ public class SCacheTest  {
 
     @Test
     public void testInvokeAll() throws Exception {
-        assertThatThrownBy(() -> cache.invokeAll(null, null)).isInstanceOf(UnsupportedOperationException.class);
+        EntryProcessor<Long, String, String> processor =
+                (entry, arguments) -> String.valueOf(entry.getKey()) + arguments[0] + entry.getValue();
+        cache.put(0L, "foo");
+        cache.put(1L, "bar");
+
+        Set<Long> keys = new HashSet<>();
+        keys.add(0L);
+        keys.add(2L);
+
+        Map<Long, EntryProcessorResult<String>> resultMap = cache.invokeAll(keys, processor, ":");
+        assertThat(resultMap).hasSize(1);
+        assertThat(resultMap.get(0L).get()).isEqualTo("0:foo");
     }
 
     @Test
