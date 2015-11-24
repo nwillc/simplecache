@@ -35,7 +35,16 @@ public class SCacheEntryEventTest {
     @Before
     public void setUp() throws Exception {
         entryEvent = new SCacheEntryEvent<>(cache, EventType.CREATED, "foo", 0L, 1L);
+    }
 
+    @Test
+    public void testAltContructor() throws Exception {
+        CacheEntryEvent<String,Long> entryEvent2 =
+                new SCacheEntryEvent<>(cache, EventType.CREATED, "foo", 0L);
+        assertThat(entryEvent2.getEventType()).isEqualTo(EventType.CREATED);
+        assertThat(entryEvent2.getKey()).isEqualTo("foo");
+        assertThat(entryEvent2.getValue()).isEqualTo(0L);
+        assertThat(entryEvent2.getOldValue()).isNull();
     }
 
     @Test
