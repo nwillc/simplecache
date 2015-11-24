@@ -75,7 +75,7 @@ public class SCacheListenerTest {
 		AssertionsForInterfaceTypes.assertThat(configuration.getCacheEntryListenerConfigurations()).hasSize(1);
 
         Cache<String, Long> cache = cacheManager.createCache(this.getClass().getSimpleName(), configuration);
-        cache.put("foo", 0l);
+        cache.put("foo", 0L);
         if (!semaphore.tryAcquire(1, 5, TimeUnit.SECONDS)) {
             fail("never notified");
         }
@@ -126,7 +126,7 @@ public class SCacheListenerTest {
         AssertionsForInterfaceTypes.assertThat(configuration.getCacheEntryListenerConfigurations()).hasSize(1);
 
         Cache<String, Long> cache = cacheManager.createCache("REMOVE", configuration);
-        cache.put("foo", 0l);
+        cache.put("foo", 0L);
         cache.remove("foo");
 
         if (!semaphore.tryAcquire(1, 5, TimeUnit.SECONDS)) {
