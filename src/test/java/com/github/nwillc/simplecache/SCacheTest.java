@@ -25,8 +25,10 @@ import javax.cache.Cache;
 import javax.cache.CacheManager;
 import javax.cache.Caching;
 import javax.cache.configuration.*;
+import javax.cache.event.CacheEntryEvent;
 import javax.cache.event.CacheEntryExpiredListener;
 import javax.cache.event.CacheEntryListener;
+import javax.cache.event.CacheEntryListenerException;
 import javax.cache.expiry.CreatedExpiryPolicy;
 import javax.cache.expiry.Duration;
 import javax.cache.processor.EntryProcessor;
@@ -91,7 +93,11 @@ public class SCacheTest  {
 
     @Test
     public void testDeregisterListener() throws Exception {
-        assertThatThrownBy(() -> cache.deregisterCacheEntryListener(null)   ).isInstanceOf(UnsupportedOperationException.class);
+        Factory<CacheEntryListener<Long,String>> listenerFactory =
+                () -> (CacheEntryExpiredListener<Long, String>) cacheEntryEvents -> {};
+        CacheEntryListenerConfiguration<Long, String> cacheEntryListenerConfiguration =
+                new MutableCacheEntryListenerConfiguration<>(listenerFactory, null, false, false);
+        assertThatThrownBy(() -> cache.deregisterCacheEntryListener(cacheEntryListenerConfiguration)).isInstanceOf(UnsupportedOperationException.class);
     }
 
     @Test
