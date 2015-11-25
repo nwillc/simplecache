@@ -16,15 +16,17 @@
 
 package com.github.nwillc.simplecache.processor;
 
+import com.github.nwillc.simplecache.spi.SCachingProvider;
 import org.junit.Before;
 import org.junit.Test;
 
 import javax.cache.Cache;
+import javax.cache.CacheManager;
+import javax.cache.Caching;
+import javax.cache.configuration.MutableConfiguration;
+import javax.cache.spi.CachingProvider;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class SMutableEntryTest {
     private Cache<Long,String> cache;
@@ -33,22 +35,29 @@ public class SMutableEntryTest {
     @SuppressWarnings("unchecked")
     @Before
     public void setUp() throws Exception {
-        cache = mock(Cache.class);
-        entry = new SMutableEntry<>(cache, 0L, "foo");
+        CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
+        CacheManager cacheManager = cachingProvider.getCacheManager();
+        cache = cacheManager.createCache(this.getClass().getSimpleName(), new MutableConfiguration<>());
+        cache.put(0L, "foo");
+        entry = new SMutableEntry<>(cache, 0L);
     }
 
     @Test
     public void testExists() throws Exception {
-        when(cache.containsKey(0L)).thenReturn(true);
         assertThat(entry.exists()).isTrue();
-        when(cache.containsKey(0L)).thenReturn(false);
+    }
+
+    @Test
+    public void testNotExists() throws Exception {
+        entry = new SMutableEntry<>(cache, 1L);
         assertThat(entry.exists()).isFalse();
     }
 
     @Test
     public void testRemove() throws Exception {
+        assertThat(cache.containsKey(0L)).isTrue();
         entry.remove();
-        verify(cache).remove(0L);
+        assertThat(cache.containsKey(0L)).isFalse();
     }
 
     @Test

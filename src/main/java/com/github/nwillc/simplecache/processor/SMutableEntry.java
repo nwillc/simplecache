@@ -24,8 +24,8 @@ import javax.cache.processor.MutableEntry;
 public class SMutableEntry<K, V> extends SEntry<K, V> implements MutableEntry<K, V> {
     private final Cache<K, V> cache;
 
-    public SMutableEntry(Cache<K, V> cache, K key, V value) {
-        super(key, value);
+    public SMutableEntry(Cache<K, V> cache, K key) {
+        super(key, null);
         this.cache = cache;
     }
 
@@ -40,7 +40,13 @@ public class SMutableEntry<K, V> extends SEntry<K, V> implements MutableEntry<K,
     }
 
     @Override
+    public V getValue() {
+        return cache.get(getKey());
+    }
+
+    @Override
     public void setValue(V value) {
         this.value = value;
+        cache.put(getKey(), value);
     }
 }

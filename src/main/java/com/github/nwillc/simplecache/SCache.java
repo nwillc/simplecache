@@ -257,9 +257,7 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K, V> {
     @Override
     public <T> T invoke(K key, EntryProcessor<K, V, T> entryProcessor, Object... arguments) throws EntryProcessorException {
         V value = get(key);
-        SMutableEntry<K, V> entry = new SMutableEntry<>(this,
-                (value != null) ? key : null,
-                value);
+        SMutableEntry<K, V> entry = new SMutableEntry<>(this, (value != null) ? key : null);
         return entryProcessor.process(entry, arguments);
     }
 
@@ -270,7 +268,7 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K, V> {
         keys.stream().forEach(k -> {
             V v = get(k);
             if (v != null) {
-                resultMap.put(k, () -> entryProcessor.process(new SMutableEntry<>(cache, k, v), arguments));
+                resultMap.put(k, () -> entryProcessor.process(new SMutableEntry<>(cache, k), arguments));
             }
         });
         return resultMap;
