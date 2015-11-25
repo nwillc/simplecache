@@ -1,17 +1,16 @@
 language: java
 jdk:
-  - oraclejdk8
+- oraclejdk8
 env:
-  - TERM=dumb
+- TERM=dumb
 after_success:
-  - ./gradlew jacocoTestReport
-  - bash <(curl -s https://codecov.io/bash)
-  - ./gradlew sourceJar javadocJar pom
+- "./gradlew jacocoTestReport"
+- bash <(curl -s https://codecov.io/bash)
+- "./gradlew sourceJar javadocJar pom"
 deploy:
   provider: bintray
-  file: .bintray
-  user: "nwillc"
-  key: "6e27437e13896c9d0e13c3ce9dc2fd95a78b8026"
+  file: ".bintray"
+  user: nwillc
+  key:
+    secure: A4XaM5EZ8+oe9dX72BczI09TcyztR9UHiFmqn5nZpDsdadZE8iAm57yMHKd8TlAd2K7iNGHFB27qxKtjgVHk6VIvGp0cjk1CGL6Q3/3vbuzMal9yY2pEuVxBjmqpBPJeZM9c4aPZE9gHUOmjWjq5KSmfYl0LN71zQ3hgexPOr+o4cIRSW8HZ2MxJGJFePyYFX2X6LZG/lOJqBt8TzeFUH6GffQQzg6y84+JP0+dfIeBmH1T6qI1Nvr1HrNyNxrDh5H/4f7cdtJmVIIxVoDeWxj126HNK7mmVqewweCO7WNF3U+XDI6U+PaEE0sJ8Pp/nRbCHxPDzyhpBVY4X65VWJKICx4RYInavpgtz6V0/TWWGnxXpLxnfAqmXVH9jt1V3t7s9wQ3sriobTCV2hr0xsxbSQRQqz35oI2C4yUALdCY2h2lVdHw1FH4+f2HHyZrYrL1olJ3EfAoY4cFir0oTcga1nhYg0uQQmiZXyDgEI9lteYNGta5jktamRL5x0TJs71WiPJ72W2aD0qhKGTjmgrv1yR5F2YWSK/doHHVlURrBRSXePHFIaa2jtYrp16WIWJQT/Jj3rsxjYQzrA/pTLDGliIaInH2OljmVZ6gufZVtUXfxWMTvq/PKWwc9S1HaMRfCoxjtxHE4v9ObgXWs69Ll1CXeAnWxhrpQ5lufM+Y=
   dry-run: false
-
-
