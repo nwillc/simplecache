@@ -1,8 +1,8 @@
 {
     "package": {
         "name": "simplecache",
-        "repo": "maven", // Bintray repository name
-        "subject": "nwillc", // Bintray subject (user or organization)
+        "repo": "maven",
+        "subject": "nwillc",
         "desc": "JSR 107 inspired simple caching",
         "website_url": "https://github.com/nwillc/simplecache",
         "issue_tracker_url": "https://github.com/nwillc/simplecache/issues",
@@ -13,13 +13,13 @@
     },
 
     "version": {
-        "name": "0.9.4",
+        "name": "0.9.4"
     },
 
     "files":
         [
-        {"includePattern": "build/libs/(.*\.jar)", "uploadPattern": "$1"},
-        {"includePattern": "build/libs/(.*\.pom)", "uploadPattern": "$1"}
+        {"includePattern": "build/libs/(.*\\.jar)", "uploadPattern": "$1"},
+        {"includePattern": "build/libs/(.*\\.pom)", "uploadPattern": "$1"}
         ],
     "publish": true
 }
