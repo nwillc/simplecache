@@ -3,3 +3,4 @@ build
 *.iml
 env.sh
 .gradle
+.ruby-version
