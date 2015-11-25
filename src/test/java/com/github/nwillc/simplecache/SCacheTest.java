@@ -31,6 +31,7 @@ import javax.cache.configuration.MutableCacheEntryListenerConfiguration;
 import javax.cache.configuration.MutableConfiguration;
 import javax.cache.event.CacheEntryExpiredListener;
 import javax.cache.event.CacheEntryListener;
+import javax.cache.event.CacheEntryUpdatedListener;
 import javax.cache.expiry.CreatedExpiryPolicy;
 import javax.cache.expiry.Duration;
 import javax.cache.processor.EntryProcessor;
@@ -116,6 +117,28 @@ public class SCacheTest  {
 
         cache.registerCacheEntryListener(cacheEntryListenerConfiguration);
         assertThatThrownBy(() -> cache.registerCacheEntryListener(cacheEntryListenerConfiguration)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    public void testAllowMultipleListenerOfSameType() throws Exception {
+
+        Factory<CacheEntryListener<Long,String>> listenerFactory1 =
+                () -> (CacheEntryUpdatedListener<Long,String>) cacheEntryEvents -> {};
+
+        MutableCacheEntryListenerConfiguration<Long,String> listenerConfig1
+                = new MutableCacheEntryListenerConfiguration<>(listenerFactory1, null, false, true);
+
+        cache.registerCacheEntryListener(listenerConfig1);
+
+        Factory<CacheEntryListener<Long,String>> listenerFactory2 =
+                () -> (CacheEntryUpdatedListener<Long,String>) cacheEntryEvents -> {};
+
+        MutableCacheEntryListenerConfiguration<Long,String> listenerConfig2
+                = new MutableCacheEntryListenerConfiguration<>(listenerFactory2, null, false, true);
+
+
+        cache.registerCacheEntryListener(listenerConfig2);
+        cache.close();
     }
 
     @Test

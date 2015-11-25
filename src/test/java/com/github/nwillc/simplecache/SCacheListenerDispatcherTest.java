@@ -16,10 +16,19 @@
 
 package com.github.nwillc.simplecache;
 
+import com.github.nwillc.simplecache.spi.SCachingProvider;
 import org.junit.Test;
 
+import javax.cache.Cache;
+import javax.cache.CacheManager;
+import javax.cache.Caching;
 import javax.cache.configuration.CacheEntryListenerConfiguration;
+import javax.cache.configuration.Factory;
+import javax.cache.configuration.MutableCacheEntryListenerConfiguration;
+import javax.cache.configuration.MutableConfiguration;
 import javax.cache.event.CacheEntryListener;
+import javax.cache.event.CacheEntryUpdatedListener;
+import javax.cache.spi.CachingProvider;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
@@ -71,4 +80,6 @@ public class SCacheListenerDispatcherTest {
 
         assertThatThrownBy(() -> SCacheListenerDispatcher.typeOf(weirdListener)).isInstanceOf(IllegalArgumentException.class);
     }
+
+
 }
