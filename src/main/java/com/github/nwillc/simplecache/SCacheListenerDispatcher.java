@@ -107,6 +107,7 @@ class SCacheListenerDispatcher<K, V> implements SListenerList<K, V> {
 		});
 	}
 
+    // Visable for testing
 	static <E> List<E> transfer(Deque<E> deque) {
 		List<E> list = new ArrayList<>(deque.size() + 10);
 
@@ -117,6 +118,7 @@ class SCacheListenerDispatcher<K, V> implements SListenerList<K, V> {
 		return list;
 	}
 
+    // Visable for testing
 	static EventType typeOf(CacheEntryListener cacheEntryListener) {
 		if (cacheEntryListener instanceof CacheEntryCreatedListener) {
 			return EventType.CREATED;
@@ -131,6 +133,7 @@ class SCacheListenerDispatcher<K, V> implements SListenerList<K, V> {
 		throw new IllegalArgumentException("Unknown CacheEntryListener subclass: " + cacheEntryListener.getClass().getSimpleName());
 	}
 
+    // Visable for testing
 	@SuppressWarnings("unchecked")
 	static Consumer<Iterable<CacheEntryEvent>> toConsumer(EventType eventType, CacheEntryListener listener) {
 		switch (eventType) {
@@ -142,12 +145,13 @@ class SCacheListenerDispatcher<K, V> implements SListenerList<K, V> {
 				return ((CacheEntryRemovedListener) listener)::onRemoved;
 			case UPDATED:
 				return ((CacheEntryUpdatedListener) listener)::onUpdated;
-			default:
-				throw new IllegalArgumentException();
+            default:
+                return null;
 		}
 	}
 
-    private static class Listener<K2, V2> {
+    // Visable for testing
+    static class Listener<K2, V2> {
         final CacheEntryListenerConfiguration<K2, V2> configuration;
 		Consumer<Iterable<CacheEntryEvent>> consumer;
         EventType type;

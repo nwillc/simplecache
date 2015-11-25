@@ -18,11 +18,15 @@ package com.github.nwillc.simplecache;
 
 import org.junit.Test;
 
+import javax.cache.configuration.CacheEntryListenerConfiguration;
+import javax.cache.event.CacheEntryListener;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.mock;
 
 public class SCacheListenerDispatcherTest {
 
@@ -39,4 +43,32 @@ public class SCacheListenerDispatcherTest {
 		assertThat(deque).hasSize(0);
 		assertThat(list).hasSize(SIZE);
 	}
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testListenerEquals() throws Exception {
+        CacheEntryListenerConfiguration conf1 = mock(CacheEntryListenerConfiguration.class);
+        CacheEntryListenerConfiguration conf2 = mock(CacheEntryListenerConfiguration.class);
+        SCacheListenerDispatcher.Listener listener1 = new SCacheListenerDispatcher.Listener<>(conf1);
+        SCacheListenerDispatcher.Listener listener2 = new SCacheListenerDispatcher.Listener<>(conf2);
+        SCacheListenerDispatcher.Listener listener3 = new SCacheListenerDispatcher.Listener<>(conf1);
+
+        assertThat(listener1).isEqualTo(listener1);
+        assertThat(listener1).isEqualTo(listener3);
+        assertThat(listener1).isNotEqualTo(listener2);
+        assertThat(listener1).isNotEqualTo(null);
+        assertThat(listener1).isNotEqualTo("foo");
+    }
+
+    @Test
+    public void testToConsumerNullType() throws Exception {
+        assertThatThrownBy(() -> SCacheListenerDispatcher.toConsumer(null, null)).isInstanceOf(NullPointerException.class);
+    }
+
+    @Test
+    public void testTypeOfUnknown() throws Exception {
+        CacheEntryListener weirdListener = new CacheEntryListener() {};
+
+        assertThatThrownBy(() -> SCacheListenerDispatcher.typeOf(weirdListener)).isInstanceOf(IllegalArgumentException.class);
+    }
 }
