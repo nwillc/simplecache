@@ -9,7 +9,7 @@ after_success:
 deploy:
   provider: bintray
   file: .bintray
-  user: ""
+  user: "nwillc"
   key: ""
   dry-run: true
 
