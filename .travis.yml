@@ -12,6 +12,6 @@ deploy:
   file: .bintray
   user: "nwillc"
   key: "6e27437e13896c9d0e13c3ce9dc2fd95a78b8026"
-  dry-run: true
+  dry-run: false
 
 
