@@ -6,11 +6,12 @@ env:
 after_success:
   - ./gradlew jacocoTestReport
   - bash <(curl -s https://codecov.io/bash)
+  - ./gradlew sourceJar javadocJar pom
 deploy:
   provider: bintray
   file: .bintray
   user: "nwillc"
-  key: ""
+  key: "6e27437e13896c9d0e13c3ce9dc2fd95a78b8026"
   dry-run: true
 
 

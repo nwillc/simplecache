@@ -117,7 +117,7 @@ bintray {
     publications = ['mavenJava']
     pkg {
         repo = 'maven'
-        name = 'simplecache'
+        name = project.name
         desc = 'JSR 107 inspired simple caching'
         websiteUrl = 'https://github.com/nwillc/simplecache'
         issueTrackerUrl = 'https://github.com/nwillc/simplecache/issues'
@@ -141,4 +141,9 @@ allprojects {
             options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
         }
     }
+}
+
+task pom << {
+    pom {
+    }.writeTo("$buildDir/libs/" + project.name + "-" + project.version + ".pom")
 }
