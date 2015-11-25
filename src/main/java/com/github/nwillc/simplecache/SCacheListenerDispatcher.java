@@ -21,8 +21,21 @@ import com.github.nwillc.simplecache.event.SCacheEntryEvent;
 import javax.cache.Cache;
 import javax.cache.configuration.CacheEntryListenerConfiguration;
 import javax.cache.configuration.CompleteConfiguration;
-import javax.cache.event.*;
-import java.util.*;
+import javax.cache.event.CacheEntryCreatedListener;
+import javax.cache.event.CacheEntryEvent;
+import javax.cache.event.CacheEntryExpiredListener;
+import javax.cache.event.CacheEntryListener;
+import javax.cache.event.CacheEntryRemovedListener;
+import javax.cache.event.CacheEntryUpdatedListener;
+import javax.cache.event.EventType;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.EnumMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
@@ -35,7 +48,7 @@ import java.util.function.Consumer;
 class SCacheListenerDispatcher<K, V> implements SListenerList<K, V> {
     private static final long DISPATCH_PERIOD_MILLIS = TimeUnit.SECONDS.toMillis(1) / 2;
     private final EnumMap<EventType, Deque<CacheEntryEvent>> eventMap = new EnumMap<>(EventType.class);
-    private final EnumMap<EventType, List<Consumer<Iterable<CacheEntryEvent>>>> listenersMap = new EnumMap<>(EventType.class);
+	private final Set<Listener<K,V>> listeners = new HashSet<>();
     private final Cache cache;
 
     @SuppressWarnings("unchecked")
@@ -55,23 +68,25 @@ class SCacheListenerDispatcher<K, V> implements SListenerList<K, V> {
 
     @Override
     public void registerCacheEntryListener(CacheEntryListenerConfiguration<K, V> cacheEntryListenerConfiguration) {
+		Listener<K,V> listener = new Listener<>(cacheEntryListenerConfiguration);
+		if (listeners.contains(listener)) {
+			throw new IllegalArgumentException("Attempting to register same listener twice");
+		}
         CacheEntryListener<? super K, ? super V> cacheEntryListener = cacheEntryListenerConfiguration.getCacheEntryListenerFactory().create();
-        ListenerEventType listenerEventType = ListenerEventType.valueOf(cacheEntryListener);
-        List<Consumer<Iterable<CacheEntryEvent>>> consumers = listenersMap.get(listenerEventType.eventType);
-
-        if (consumers == null) {
-            consumers = new ArrayList<>();
-            listenersMap.put(listenerEventType.eventType, consumers);
-            eventMap.put(listenerEventType.eventType, new ConcurrentLinkedDeque<>());
-        }
-
-        consumers.add(listenerEventType.toConsumer(cacheEntryListener));
+		EventType eventType = SCacheListenerDispatcher.typeOf(cacheEntryListener);
+		listener.type = eventType;
+		listener.consumer = SCacheListenerDispatcher.toConsumer(eventType, cacheEntryListener);
+		listeners.add(listener);
+		if (!eventMap.containsKey(eventType)) {
+			eventMap.put(eventType, new ConcurrentLinkedDeque<>());
+		}
     }
 
     @Override
     public void deregisterCacheEntryListener(CacheEntryListenerConfiguration<K, V> cacheEntryListenerConfiguration) {
-        throw new UnsupportedOperationException();
-    }
+		Listener<K, V> listener = new Listener<>(cacheEntryListenerConfiguration);
+		listeners.remove(listener);
+	}
 
     public void event(EventType type, K key, V value, V old) {
         Deque<CacheEntryEvent> events = eventMap.get(type);
@@ -80,71 +95,81 @@ class SCacheListenerDispatcher<K, V> implements SListenerList<K, V> {
         }
     }
 
-    private void dispatch() {
-        listenersMap.entrySet().forEach(listenerEntry -> {
-            Deque<CacheEntryEvent> deque = eventMap.get(listenerEntry.getKey());
-            if (deque != null) {
-                List<CacheEntryEvent> events = new ArrayList<>(deque.size() + 10);
-                CacheEntryEvent event = deque.pollLast();
-                while (event != null) {
-                    events.add(event);
-                    event = deque.pollLast();
-                }
-                if (events.size() > 0) {
-                    listenerEntry.getValue().forEach(c -> c.accept(events));
-                }
-            }
-        });
-    }
+	private void dispatch() {
+		final EnumMap<EventType, List<CacheEntryEvent>> snapshot = new EnumMap<>(EventType.class);
+		eventMap.keySet().forEach(eventType -> snapshot.put(eventType, transfer(eventMap.get(eventType))));
 
-    // Once we know the type, lets make the listeners polymorphic
-    @SuppressWarnings("unchecked")
-    enum ListenerEventType {
-        CREATED(EventType.CREATED) {
-            @Override
-            Consumer<Iterable<CacheEntryEvent>> toConsumer(CacheEntryListener listener) {
-                return ((CacheEntryCreatedListener) listener)::onCreated;
-            }
-        },
-        EXPIRED(EventType.EXPIRED) {
-            @Override
-            Consumer<Iterable<CacheEntryEvent>> toConsumer(CacheEntryListener listener) {
-                return ((CacheEntryExpiredListener) listener)::onExpired;
-            }
-        },
-        REMOVED(EventType.REMOVED) {
-            @Override
-            Consumer<Iterable<CacheEntryEvent>> toConsumer(CacheEntryListener listener) {
-                return ((CacheEntryRemovedListener) listener)::onRemoved;
-            }
-        },
-        UPDATED(EventType.UPDATED) {
-            @Override
-            Consumer<Iterable<CacheEntryEvent>> toConsumer(CacheEntryListener listener) {
-                return ((CacheEntryUpdatedListener) listener)::onUpdated;
-            }
-        };
+		listeners.forEach(l -> {
+			List<CacheEntryEvent> list = snapshot.get(l.type);
+			if (list != null && list.size() > 0) {
+				l.consumer.accept(list);
+			}
+		});
+	}
 
-        final EventType eventType;
+	static <E> List<E> transfer(Deque<E> deque) {
+		List<E> list = new ArrayList<>(deque.size() + 10);
 
-        abstract Consumer<Iterable<CacheEntryEvent>> toConsumer(CacheEntryListener listener);
+		E element;
+		while ((element = deque.pollLast()) != null) {
+			list.add(element);
+		}
+		return list;
+	}
 
-        ListenerEventType(EventType eventType) {
-            this.eventType = eventType;
+	static EventType typeOf(CacheEntryListener cacheEntryListener) {
+		if (cacheEntryListener instanceof CacheEntryCreatedListener) {
+			return EventType.CREATED;
+		} else if (cacheEntryListener instanceof CacheEntryExpiredListener) {
+			return EventType.EXPIRED;
+		} else if (cacheEntryListener instanceof CacheEntryRemovedListener) {
+			return EventType.REMOVED;
+		} else if (cacheEntryListener instanceof CacheEntryUpdatedListener) {
+			return EventType.UPDATED;
+		}
+
+		throw new IllegalArgumentException("Unknown CacheEntryListener subclass: " + cacheEntryListener.getClass().getSimpleName());
+	}
+
+	@SuppressWarnings("unchecked")
+	static Consumer<Iterable<CacheEntryEvent>> toConsumer(EventType eventType, CacheEntryListener listener) {
+		switch (eventType) {
+			case CREATED:
+				return ((CacheEntryCreatedListener) listener)::onCreated;
+			case EXPIRED:
+				return ((CacheEntryExpiredListener) listener)::onExpired;
+			case REMOVED:
+				return ((CacheEntryRemovedListener) listener)::onRemoved;
+			case UPDATED:
+				return ((CacheEntryUpdatedListener) listener)::onUpdated;
+			default:
+				throw new IllegalArgumentException();
+		}
+	}
+
+    private static class Listener<K2, V2> {
+        final CacheEntryListenerConfiguration<K2, V2> configuration;
+		Consumer<Iterable<CacheEntryEvent>> consumer;
+        EventType type;
+
+        public Listener(CacheEntryListenerConfiguration<K2, V2> configuration) {
+            this.configuration = configuration;
         }
 
-        static ListenerEventType valueOf(CacheEntryListener cacheEntryListener) {
-            if (cacheEntryListener instanceof CacheEntryCreatedListener) {
-                return CREATED;
-            } else if (cacheEntryListener instanceof CacheEntryExpiredListener) {
-                return EXPIRED;
-            } else if (cacheEntryListener instanceof CacheEntryRemovedListener) {
-                return REMOVED;
-            } else if (cacheEntryListener instanceof CacheEntryUpdatedListener) {
-                return UPDATED;
-            }
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if (o == null || getClass() != o.getClass()) return false;
 
-            throw new IllegalArgumentException("Unknown CacheEntryListener subclass: " + cacheEntryListener.getClass().getSimpleName());
-        }
-    }
+			Listener<?, ?> listener = (Listener<?, ?>) o;
+
+			return configuration.equals(listener.configuration);
+
+		}
+
+		@Override
+		public int hashCode() {
+			return configuration.hashCode();
+		}
+	}
 }

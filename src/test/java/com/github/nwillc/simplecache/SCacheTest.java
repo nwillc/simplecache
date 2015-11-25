@@ -19,6 +19,7 @@ package com.github.nwillc.simplecache;
 import com.github.nwillc.simplecache.spi.SCachingProvider;
 import org.assertj.core.data.MapEntry;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.cache.Cache;
@@ -97,7 +98,8 @@ public class SCacheTest  {
                 () -> (CacheEntryExpiredListener<Long, String>) cacheEntryEvents -> {};
         CacheEntryListenerConfiguration<Long, String> cacheEntryListenerConfiguration =
                 new MutableCacheEntryListenerConfiguration<>(listenerFactory, null, false, false);
-        assertThatThrownBy(() -> cache.deregisterCacheEntryListener(cacheEntryListenerConfiguration)).isInstanceOf(UnsupportedOperationException.class);
+        cache.registerCacheEntryListener(cacheEntryListenerConfiguration);
+        cache.deregisterCacheEntryListener(cacheEntryListenerConfiguration);
     }
 
     @Test
@@ -108,12 +110,7 @@ public class SCacheTest  {
                 new MutableCacheEntryListenerConfiguration<>(listenerFactory, null, false, false);
 
         cache.registerCacheEntryListener(cacheEntryListenerConfiguration);
-        cache.registerCacheEntryListener(cacheEntryListenerConfiguration);
-    }
-
-    @Test
-    public void testDeregisterCacheEntryListener() throws Exception {
-        assertThatThrownBy(() -> cache.deregisterCacheEntryListener(null)).isInstanceOf(UnsupportedOperationException.class);
+        assertThatThrownBy(() -> cache.registerCacheEntryListener(cacheEntryListenerConfiguration)).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
