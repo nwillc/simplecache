@@ -13,13 +13,13 @@
     },
 
     "version": {
-        "name": "0.9.5"
+        "name": "0.9.6"
     },
 
     "files":
         [
-        {"includePattern": "build/libs/(.*\\.jar)", "uploadPattern": "$1"},
-        {"includePattern": "build/libs/(.*\\.pom)", "uploadPattern": "$1"}
+        {"includePattern": "build/libs/(.*\\.jar)", "uploadPattern": "0.9.6/$1"},
+        {"includePattern": "build/libs/(.*\\.pom)", "uploadPattern": "0.9.6/$1"}
         ],
     "publish": true
 }
