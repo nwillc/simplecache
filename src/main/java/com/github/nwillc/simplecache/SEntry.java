@@ -21,11 +21,12 @@ import java.util.Map;
 
 /**
  * A simple key/value pair implementing Cache.Entry.
+ *
  * @param <K> cache's key type
  * @param <V> cache's value type
  */
 public class SEntry<K, V> implements Cache.Entry<K, V> {
-    private K key;
+    private final K key;
     protected V value;
 
     public SEntry(K key, V value) {
@@ -33,7 +34,7 @@ public class SEntry<K, V> implements Cache.Entry<K, V> {
         this.value = value;
     }
 
-    SEntry(Map.Entry<K,V> entry) {
+    SEntry(Map.Entry<K, V> entry) {
         this(entry.getKey(), entry.getValue());
     }
 

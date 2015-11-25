@@ -34,7 +34,11 @@ import javax.cache.integration.CompletionListener;
 import javax.cache.processor.EntryProcessor;
 import javax.cache.processor.EntryProcessorException;
 import javax.cache.processor.EntryProcessorResult;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -262,7 +266,7 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K, V> {
     @Override
     public <T> Map<K, EntryProcessorResult<T>> invokeAll(Set<? extends K> keys, EntryProcessor<K, V, T> entryProcessor, Object... arguments) {
         Map<K, EntryProcessorResult<T>> resultMap = new HashMap<>();
-        Cache<K,V> cache = this;
+        Cache<K, V> cache = this;
         keys.stream().forEach(k -> {
             V v = get(k);
             if (v != null) {

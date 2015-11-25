@@ -67,6 +67,11 @@ public class SCachingProvider implements CachingProvider {
         return cacheManager.get();
     }
 
+    // for testing only
+    void setCacheManager(CacheManager cm) {
+        cacheManager.set(cm);
+    }
+
     @Override
     public void close() {
         CacheManager cm = cacheManager.getAndSet(null);
@@ -88,11 +93,6 @@ public class SCachingProvider implements CachingProvider {
     @Override
     public boolean isSupported(OptionalFeature optionalFeature) {
         return false;
-    }
-
-    // for testing only
-    void setCacheManager(CacheManager cm) {
-        cacheManager.set(cm);
     }
 
     public void removeCacheManager(SCacheManager cm) {

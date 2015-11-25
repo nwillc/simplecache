@@ -24,6 +24,7 @@ import java.util.function.Consumer;
 
 /**
  * A CacheWriter implementation that accepts a delete and a write Consumer as arguments to the constructor.
+ *
  * @param <K> cache's key type
  * @param <V> cache's value type
  */

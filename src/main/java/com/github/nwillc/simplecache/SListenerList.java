@@ -18,7 +18,8 @@ package com.github.nwillc.simplecache;
 
 import javax.cache.configuration.CacheEntryListenerConfiguration;
 
-public interface SListenerList<K,V> {
+interface SListenerList<K, V> {
     void registerCacheEntryListener(CacheEntryListenerConfiguration<K, V> cacheEntryListenerConfiguration);
+
     void deregisterCacheEntryListener(CacheEntryListenerConfiguration<K, V> cacheEntryListenerConfiguration);
 }

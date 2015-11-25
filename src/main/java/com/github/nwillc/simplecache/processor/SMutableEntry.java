@@ -21,10 +21,10 @@ import com.github.nwillc.simplecache.SEntry;
 import javax.cache.Cache;
 import javax.cache.processor.MutableEntry;
 
-public class SMutableEntry<K,V> extends SEntry<K,V> implements MutableEntry<K,V> {
-    private final Cache<K,V> cache;
+public class SMutableEntry<K, V> extends SEntry<K, V> implements MutableEntry<K, V> {
+    private final Cache<K, V> cache;
 
-    public SMutableEntry(Cache<K,V> cache, K key, V value) {
+    public SMutableEntry(Cache<K, V> cache, K key, V value) {
         super(key, value);
         this.cache = cache;
     }
