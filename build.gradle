@@ -58,7 +58,7 @@ dependencies {
 }
 
 group = "com.github.nwillc"
-version = "0.9.6"
+version = "1.0.0"
 targetCompatibility = "1.8"
 sourceCompatibility = "1.8"
 
@@ -141,9 +141,4 @@ allprojects {
             options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
         }
     }
-}
-
-task pom << {
-    pom {
-    }.writeTo("$buildDir/libs/" + project.name + "-" + project.version + ".pom")
 }
