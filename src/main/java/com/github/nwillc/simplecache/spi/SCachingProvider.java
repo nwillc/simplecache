@@ -46,10 +46,7 @@ public class SCachingProvider implements CachingProvider {
 		if (cacheManager == null || cacheManager.isClosed()) {
 			try {
 				Class<?> cmClass = managerClassLoader.loadClass(SCacheManager.class.getCanonicalName());
-				Class[] types = new Class[2];
-				types[0] = SCachingProvider.class;
-				types[1] = Properties.class;
-				cacheManager = (CacheManager) cmClass.getDeclaredConstructor(types).newInstance(this, managerProrperties);
+				cacheManager = (CacheManager) cmClass.getDeclaredConstructor(SCachingProvider.class, Properties.class).newInstance(this, managerProrperties);
 			} catch (Exception e) {
 				throw new CacheException("ClassLoader can not load SCacheManager class.", e);
 			}
