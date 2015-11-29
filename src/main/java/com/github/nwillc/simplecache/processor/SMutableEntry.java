@@ -22,30 +22,30 @@ import javax.cache.Cache;
 import javax.cache.processor.MutableEntry;
 
 public class SMutableEntry<K, V> extends SEntry<K, V> implements MutableEntry<K, V> {
-    private final Cache<K, V> cache;
+	private final Cache<K, V> cache;
 
-    public SMutableEntry(Cache<K, V> cache, K key) {
-        super(key, null);
-        this.cache = cache;
-    }
+	public SMutableEntry(Cache<K, V> cache, K key) {
+		super(key, null);
+		this.cache = cache;
+	}
 
-    @Override
-    public boolean exists() {
-        return cache.containsKey(getKey());
-    }
+	@Override
+	public boolean exists() {
+		return cache.containsKey(getKey());
+	}
 
-    @Override
-    public void remove() {
-        cache.remove(getKey());
-    }
+	@Override
+	public void remove() {
+		cache.remove(getKey());
+	}
 
-    @Override
-    public V getValue() {
-        return cache.get(getKey());
-    }
+	@Override
+	public V getValue() {
+		return cache.get(getKey());
+	}
 
-    @Override
-    public void setValue(V value) {
-        cache.put(getKey(), value);
-    }
+	@Override
+	public void setValue(V value) {
+		cache.put(getKey(), value);
+	}
 }

@@ -26,17 +26,17 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 public class CachingTest {
 
-    @Test
-    public void testGetCachingProviderForName() throws Exception {
-        CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
-        assertThat(cachingProvider).isNotNull();
-        assertThat(cachingProvider).isInstanceOf(SCachingProvider.class);
-    }
+	@Test
+	public void testGetCachingProviderForName() throws Exception {
+		CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
+		assertThat(cachingProvider).isNotNull();
+		assertThat(cachingProvider).isInstanceOf(SCachingProvider.class);
+	}
 
-    @Test
-    public void testGetCachingProvider() throws Exception {
-        CachingProvider cachingProvider = Caching.getCachingProvider();
-        assertThat(cachingProvider).isNotNull();
-        assertThat(cachingProvider).isInstanceOf(SCachingProvider.class);
-    }
+	@Test
+	public void testGetCachingProvider() throws Exception {
+		CachingProvider cachingProvider = Caching.getCachingProvider();
+		assertThat(cachingProvider).isNotNull();
+		assertThat(cachingProvider).isInstanceOf(SCachingProvider.class);
+	}
 }

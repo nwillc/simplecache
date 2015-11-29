@@ -31,22 +31,22 @@ import static java.util.stream.StreamSupport.stream;
  * @param <V> cache's value type
  */
 public class SCacheLoader<K, V> implements CacheLoader<K, V> {
-    private final Function<K, V> loader;
+	private final Function<K, V> loader;
 
-    public SCacheLoader(Function<K, V> loader) {
-        this.loader = loader;
-    }
+	public SCacheLoader(Function<K, V> loader) {
+		this.loader = loader;
+	}
 
-    @Override
-    public V load(K key) throws CacheLoaderException {
-        return loader.apply(key);
-    }
+	@Override
+	public V load(K key) throws CacheLoaderException {
+		return loader.apply(key);
+	}
 
-    @Override
-    public Map<K, V> loadAll(Iterable<? extends K> keys) throws CacheLoaderException {
-        // Collectors.toMap has issues with some versions of jdk8 so doing this w/ forEach
-        Map<K, V> map = new HashMap<>();
-        stream(keys.spliterator(), false).forEach(k -> map.put(k, load(k)));
-        return map;
-    }
+	@Override
+	public Map<K, V> loadAll(Iterable<? extends K> keys) throws CacheLoaderException {
+		// Collectors.toMap has issues with some versions of jdk8 so doing this w/ forEach
+		Map<K, V> map = new HashMap<>();
+		stream(keys.spliterator(), false).forEach(k -> map.put(k, load(k)));
+		return map;
+	}
 }

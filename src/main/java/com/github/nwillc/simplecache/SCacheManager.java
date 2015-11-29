@@ -29,104 +29,104 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SCacheManager implements CacheManager {
-    private final Map<String, Cache> cacheMap = new ConcurrentHashMap<>();
-    private final Properties properties = new Properties();
-    private final SCachingProvider cachingProvider;
-    private final AtomicBoolean closed = new AtomicBoolean(true);
+	private final Map<String, Cache> cacheMap = new ConcurrentHashMap<>();
+	private final Properties properties;
+	private final SCachingProvider cachingProvider;
+	private final AtomicBoolean closed = new AtomicBoolean(true);
 
-    public SCacheManager(SCachingProvider cachingProvider) {
-        this.cachingProvider = cachingProvider;
-        closed.set(false);
-    }
+	public SCacheManager(SCachingProvider cachingProvider, Properties properties) {
+		this.cachingProvider = cachingProvider;
+		this.properties = properties == null ? new Properties() : properties;
+		closed.set(false);
+	}
 
-    @Override
-    public CachingProvider getCachingProvider() {
-        return cachingProvider;
-    }
+	@Override
+	public CachingProvider getCachingProvider() {
+		return cachingProvider;
+	}
 
-    @Override
-    public URI getURI() {
-        throw new UnsupportedOperationException();
-    }
+	@Override
+	public URI getURI() {
+		throw new UnsupportedOperationException();
+	}
 
-    @Override
-    public ClassLoader getClassLoader() {
-        return ClassLoader.getSystemClassLoader();
-    }
+	@Override
+	public ClassLoader getClassLoader() {
+		return ClassLoader.getSystemClassLoader();
+	}
 
-    @Override
-    public Properties getProperties() {
-        return properties;
-    }
+	@Override
+	public Properties getProperties() {
+		return properties;
+	}
 
-    @Override
-    public <K, V, C extends Configuration<K, V>> Cache<K, V> createCache(String cacheName, C configuration) throws IllegalArgumentException {
-        exceptionIfClosed();
-        Cache<K, V> cache = new SCache<>(this, cacheName, configuration);
-        cacheMap.put(cacheName, cache);
-        return cache;
-    }
+	@Override
+	public <K, V, C extends Configuration<K, V>> Cache<K, V> createCache(String cacheName, C configuration) throws IllegalArgumentException {
+		exceptionIfClosed();
+		Cache<K, V> cache = new SCache<>(this, cacheName, configuration);
+		cacheMap.put(cacheName, cache);
+		return cache;
+	}
 
-    @Override
-    public <K, V> Cache<K, V> getCache(String cacheName, Class<K> keyType, Class<V> valueType) {
-        return getCache(cacheName);
-    }
+	@Override
+	public <K, V> Cache<K, V> getCache(String cacheName, Class<K> keyType, Class<V> valueType) {
+		return getCache(cacheName);
+	}
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public <K, V> Cache<K, V> getCache(String cacheName) {
-        exceptionIfClosed();
-        return cacheMap.get(cacheName);
-    }
+	@SuppressWarnings("unchecked")
+	@Override
+	public <K, V> Cache<K, V> getCache(String cacheName) {
+		exceptionIfClosed();
+		return cacheMap.get(cacheName);
+	}
 
-    @Override
-    public Iterable<String> getCacheNames() {
-        exceptionIfClosed();
-        return cacheMap.keySet();
-    }
+	@Override
+	public Iterable<String> getCacheNames() {
+		exceptionIfClosed();
+		return cacheMap.keySet();
+	}
 
-    @Override
-    public void destroyCache(String cacheName) {
-        exceptionIfClosed();
-        cacheMap.remove(cacheName);
-    }
+	@Override
+	public void destroyCache(String cacheName) {
+		exceptionIfClosed();
+		cacheMap.remove(cacheName);
+	}
 
-    @Override
-    public void enableManagement(String cacheName, boolean enabled) {
-        throw new UnsupportedOperationException();
-    }
+	@Override
+	public void enableManagement(String cacheName, boolean enabled) {
+		throw new UnsupportedOperationException();
+	}
 
-    @Override
-    public void enableStatistics(String cacheName, boolean enabled) {
-        throw new UnsupportedOperationException();
-    }
+	@Override
+	public void enableStatistics(String cacheName, boolean enabled) {
+		throw new UnsupportedOperationException();
+	}
 
-    @Override
-    public void close() {
-        if (closed.compareAndSet(false, true)) {
-            cachingProvider.removeCacheManager(this);
-            cacheMap.values().stream().forEach(Cache::close);
-            cacheMap.clear();
-        }
-    }
+	@Override
+	public void close() {
+		if (closed.compareAndSet(false, true)) {
+			cacheMap.values().stream().forEach(Cache::close);
+			cacheMap.clear();
+		}
+	}
 
-    @Override
-    public boolean isClosed() {
-        return closed.get();
-    }
+	@Override
+	public boolean isClosed() {
+		return closed.get();
+	}
 
-    @Override
-    public <T> T unwrap(Class<T> clazz) {
-        if (clazz.isAssignableFrom(this.getClass())) {
-            return clazz.cast(this);
-        }
+	@Override
+	public <T> T unwrap(Class<T> clazz) {
+		if (clazz.isAssignableFrom(this.getClass())) {
+			return clazz.cast(this);
+		}
 
-        throw new IllegalArgumentException();
-    }
+		throw new IllegalArgumentException();
+	}
 
-    private void exceptionIfClosed() {
-        if (closed.get()) {
-            throw new IllegalStateException("CacheManager is closed.");
-        }
-    }
+	private void exceptionIfClosed() {
+		if (closed.get()) {
+			throw new IllegalStateException("CacheManager is closed.");
+		}
+	}
 }

@@ -26,50 +26,50 @@ import java.util.Map;
  * @param <V> cache's value type
  */
 public class SEntry<K, V> implements Cache.Entry<K, V> {
-    private final K key;
-    private final V value;
+	private final K key;
+	private final V value;
 
-    public SEntry(K key, V value) {
-        this.key = key;
-        this.value = value;
-    }
+	public SEntry(K key, V value) {
+		this.key = key;
+		this.value = value;
+	}
 
-    SEntry(Map.Entry<K, V> entry) {
-        this(entry.getKey(), entry.getValue());
-    }
+	SEntry(Map.Entry<K, V> entry) {
+		this(entry.getKey(), entry.getValue());
+	}
 
-    @Override
-    public K getKey() {
-        return key;
-    }
+	@Override
+	public K getKey() {
+		return key;
+	}
 
-    @Override
-    public V getValue() {
-        return value;
-    }
+	@Override
+	public V getValue() {
+		return value;
+	}
 
-    @Override
-    public <T> T unwrap(Class<T> clazz) {
-        if (clazz.isAssignableFrom(this.getClass())) {
-            return clazz.cast(this);
-        }
+	@Override
+	public <T> T unwrap(Class<T> clazz) {
+		if (clazz.isAssignableFrom(this.getClass())) {
+			return clazz.cast(this);
+		}
 
-        throw new IllegalArgumentException();
-    }
+		throw new IllegalArgumentException();
+	}
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof SEntry)) return false;
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof SEntry)) return false;
 
-        SEntry<?, ?> sEntry = (SEntry<?, ?>) o;
+		SEntry<?, ?> sEntry = (SEntry<?, ?>) o;
 
-        return getKey().equals(sEntry.getKey());
+		return getKey().equals(sEntry.getKey());
 
-    }
+	}
 
-    @Override
-    public int hashCode() {
-        return getKey().hashCode();
-    }
+	@Override
+	public int hashCode() {
+		return getKey().hashCode();
+	}
 }

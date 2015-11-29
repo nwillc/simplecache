@@ -25,83 +25,83 @@ import java.util.function.Supplier;
  * Stores time stamps for creation, access and update.  Implements logic to test the times against different ExpiryPolicies.
  */
 class SExpiryData {
-    public static final long NEVER = -1L;
-    private final Supplier<Long> timeSource;
-    private final ExpiryPolicy expiryPolicy;
-    private final Expired expired;
-    long created = NEVER;
-    long accessed = NEVER;
-    long updated = NEVER;
+	public static final long NEVER = -1L;
+	private final Supplier<Long> timeSource;
+	private final ExpiryPolicy expiryPolicy;
+	private final Expired expired;
+	long created = NEVER;
+	long accessed = NEVER;
+	long updated = NEVER;
 
-    public SExpiryData(Supplier<Long> timeSource) {
-        this(timeSource, new EternalExpiryPolicy());
-    }
+	public SExpiryData(Supplier<Long> timeSource) {
+		this(timeSource, new EternalExpiryPolicy());
+	}
 
-    SExpiryData(Supplier<Long> timeSource, ExpiryPolicy expiryPolicy) {
-        this.timeSource = timeSource;
-        this.expiryPolicy = expiryPolicy;
-        expired = Expired.valueOf(expiryPolicy.getClass().getSimpleName());
-        created = timeSource.get();
-    }
+	SExpiryData(Supplier<Long> timeSource, ExpiryPolicy expiryPolicy) {
+		this.timeSource = timeSource;
+		this.expiryPolicy = expiryPolicy;
+		expired = Expired.valueOf(expiryPolicy.getClass().getSimpleName());
+		created = timeSource.get();
+	}
 
-    SExpiryData access() {
-        accessed = timeSource.get();
-        return this;
-    }
+	SExpiryData access() {
+		accessed = timeSource.get();
+		return this;
+	}
 
-    SExpiryData update() {
-        updated = timeSource.get();
-        return this;
-    }
+	SExpiryData update() {
+		updated = timeSource.get();
+		return this;
+	}
 
-    boolean expired() {
-        return expired.test(this, timeSource.get());
-    }
+	boolean expired() {
+		return expired.test(this, timeSource.get());
+	}
 
-    enum Expired {
-        EternalExpiryPolicy {
-            @Override
-            boolean test(SExpiryData expiryData, long now) {
-                return false;
-            }
-        },
-        CreatedExpiryPolicy {
-            @Override
-            boolean test(SExpiryData expiryData, long now) {
-                return test(now, expiryData.expiryPolicy.getExpiryForCreation(), expiryData.created);
-            }
-        },
-        AccessedExpiryPolicy {
-            @Override
-            boolean test(SExpiryData expiryData, long now) {
-                return test(now, expiryData.expiryPolicy.getExpiryForAccess(), expiryData.accessed);
-            }
-        },
-        ModifiedExpiryPolicy {
-            @Override
-            boolean test(SExpiryData expiryData, long now) {
-                return test(now, expiryData.expiryPolicy.getExpiryForUpdate(), expiryData.created, expiryData.updated);
-            }
-        },
-        TouchedExpiryPolicy {
-            @Override
-            boolean test(SExpiryData expiryData, long now) {
-                return test(now, expiryData.expiryPolicy.getExpiryForCreation(), expiryData.created, expiryData.updated, expiryData.accessed);
-            }
-        };
+	enum Expired {
+		EternalExpiryPolicy {
+			@Override
+			boolean test(SExpiryData expiryData, long now) {
+				return false;
+			}
+		},
+		CreatedExpiryPolicy {
+			@Override
+			boolean test(SExpiryData expiryData, long now) {
+				return test(now, expiryData.expiryPolicy.getExpiryForCreation(), expiryData.created);
+			}
+		},
+		AccessedExpiryPolicy {
+			@Override
+			boolean test(SExpiryData expiryData, long now) {
+				return test(now, expiryData.expiryPolicy.getExpiryForAccess(), expiryData.accessed);
+			}
+		},
+		ModifiedExpiryPolicy {
+			@Override
+			boolean test(SExpiryData expiryData, long now) {
+				return test(now, expiryData.expiryPolicy.getExpiryForUpdate(), expiryData.created, expiryData.updated);
+			}
+		},
+		TouchedExpiryPolicy {
+			@Override
+			boolean test(SExpiryData expiryData, long now) {
+				return test(now, expiryData.expiryPolicy.getExpiryForCreation(), expiryData.created, expiryData.updated, expiryData.accessed);
+			}
+		};
 
-        abstract boolean test(SExpiryData expiryData, long now);
+		abstract boolean test(SExpiryData expiryData, long now);
 
-        boolean test(long now, Duration duration, long... times) {
-            long last = 0L;
-            for (long time : times) {
-                if (time > last) {
-                    last = time;
-                }
-            }
-            long delta = now - last;
-            return delta > duration.getTimeUnit().toNanos(duration.getDurationAmount());
-        }
+		boolean test(long now, Duration duration, long... times) {
+			long last = 0L;
+			for (long time : times) {
+				if (time > last) {
+					last = time;
+				}
+			}
+			long delta = now - last;
+			return delta > duration.getTimeUnit().toNanos(duration.getDurationAmount());
+		}
 
-    }
+	}
 }

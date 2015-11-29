@@ -26,14 +26,14 @@ import javax.cache.expiry.ExpiryPolicy;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 public class MutableConfigurationTest {
-    @Test
-    public void shouldHaveDefaultExpiry() throws Exception {
-        MutableConfiguration<Long, String> configuration = new MutableConfiguration<>();
-        assertThat(configuration).isNotNull();
-        Factory<ExpiryPolicy> expiryPolicyFactory = configuration.getExpiryPolicyFactory();
-        assertThat(expiryPolicyFactory).isNotNull();
-        ExpiryPolicy expiryPolicy = expiryPolicyFactory.create();
-        assertThat(expiryPolicy).isNotNull();
-        assertThat(expiryPolicy).isInstanceOf(EternalExpiryPolicy.class);
-    }
+	@Test
+	public void shouldHaveDefaultExpiry() throws Exception {
+		MutableConfiguration<Long, String> configuration = new MutableConfiguration<>();
+		assertThat(configuration).isNotNull();
+		Factory<ExpiryPolicy> expiryPolicyFactory = configuration.getExpiryPolicyFactory();
+		assertThat(expiryPolicyFactory).isNotNull();
+		ExpiryPolicy expiryPolicy = expiryPolicyFactory.create();
+		assertThat(expiryPolicy).isNotNull();
+		assertThat(expiryPolicy).isInstanceOf(EternalExpiryPolicy.class);
+	}
 }

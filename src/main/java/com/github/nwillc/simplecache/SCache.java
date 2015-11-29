@@ -45,341 +45,341 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 
 public final class SCache<K, V> implements Cache<K, V>, SListenerList<K, V> {
-    private final ConcurrentMap<K, SExpiryData> expiry = new ConcurrentHashMap<>();
-    private final ConcurrentMap<K, V> data = new ConcurrentHashMap<>();
-    private final CacheManager cacheManager;
-    private final String name;
-    private final MutableConfiguration<K, V> configuration;
-    private final Optional<CacheLoader<K, V>> loader;
-    private final Optional<CacheWriter<? super K, ? super V>> writer;
-    private final Factory<SExpiryData> expiryDataFactory;
-    private final Optional<SCacheStatisticsMXBean> statistics;
-    private final AtomicBoolean closed = new AtomicBoolean(true);
-    private final SCacheListenerDispatcher<K, V> eventListenerDispatcher;
-    private Supplier<Long> clock = System::nanoTime;
+	private final ConcurrentMap<K, SExpiryData> expiry = new ConcurrentHashMap<>();
+	private final ConcurrentMap<K, V> data = new ConcurrentHashMap<>();
+	private final CacheManager cacheManager;
+	private final String name;
+	private final MutableConfiguration<K, V> configuration;
+	private final Optional<CacheLoader<K, V>> loader;
+	private final Optional<CacheWriter<? super K, ? super V>> writer;
+	private final Factory<SExpiryData> expiryDataFactory;
+	private final Optional<SCacheStatisticsMXBean> statistics;
+	private final AtomicBoolean closed = new AtomicBoolean(true);
+	private final SCacheListenerDispatcher<K, V> eventListenerDispatcher;
+	private Supplier<Long> clock = System::nanoTime;
 
-    @SuppressWarnings("unchecked")
-    public SCache(CacheManager cacheManager, String name, Configuration<K, V> configuration) {
-        this.cacheManager = cacheManager;
-        this.name = name;
-        this.configuration = new MutableConfiguration<>((MutableConfiguration) configuration);
-        loader = Optional.ofNullable(this.configuration.getCacheLoaderFactory() == null ?
-                null : this.configuration.getCacheLoaderFactory().create());
-        writer = Optional.ofNullable(this.configuration.getCacheWriterFactory() == null ?
-                null : this.configuration.getCacheWriterFactory().create());
-        expiryDataFactory = (Factory<SExpiryData>) () ->
-                new SExpiryData(clock, (ExpiryPolicy) ((MutableConfiguration) configuration).getExpiryPolicyFactory().create());
-        statistics = ((MutableConfiguration) configuration).isStatisticsEnabled() ?
-                Optional.of(new SCacheStatisticsMXBean()) : Optional.<SCacheStatisticsMXBean>empty();
-        eventListenerDispatcher = new SCacheListenerDispatcher<>(this);
-        closed.set(false);
-    }
+	@SuppressWarnings("unchecked")
+	public SCache(CacheManager cacheManager, String name, Configuration<K, V> configuration) {
+		this.cacheManager = cacheManager;
+		this.name = name;
+		this.configuration = new MutableConfiguration<>((MutableConfiguration) configuration);
+		loader = Optional.ofNullable(this.configuration.getCacheLoaderFactory() == null ?
+				null : this.configuration.getCacheLoaderFactory().create());
+		writer = Optional.ofNullable(this.configuration.getCacheWriterFactory() == null ?
+				null : this.configuration.getCacheWriterFactory().create());
+		expiryDataFactory = (Factory<SExpiryData>) () ->
+				new SExpiryData(clock, (ExpiryPolicy) ((MutableConfiguration) configuration).getExpiryPolicyFactory().create());
+		statistics = ((MutableConfiguration) configuration).isStatisticsEnabled() ?
+				Optional.of(new SCacheStatisticsMXBean()) : Optional.<SCacheStatisticsMXBean>empty();
+		eventListenerDispatcher = new SCacheListenerDispatcher<>(this);
+		closed.set(false);
+	}
 
-    @Override
-    public V get(K key) {
-        exceptionIfClosed();
-        statistics.ifPresent(SCacheStatisticsMXBean::get);
-        expiryCheck(key);
-        V value = data.get(key);
-        if (value == null) {
-            statistics.ifPresent(SCacheStatisticsMXBean::miss);
-            value = readThrough(key);
-        } else {
-            statistics.ifPresent(SCacheStatisticsMXBean::hit);
-        }
-        expiry.compute(key, (k, v) -> v == null ? expiryDataFactory.create() : v.access());
-        return value;
-    }
+	@Override
+	public V get(K key) {
+		exceptionIfClosed();
+		statistics.ifPresent(SCacheStatisticsMXBean::get);
+		expiryCheck(key);
+		V value = data.get(key);
+		if (value == null) {
+			statistics.ifPresent(SCacheStatisticsMXBean::miss);
+			value = readThrough(key);
+		} else {
+			statistics.ifPresent(SCacheStatisticsMXBean::hit);
+		}
+		expiry.compute(key, (k, v) -> v == null ? expiryDataFactory.create() : v.access());
+		return value;
+	}
 
-    @Override
-    public Map<K, V> getAll(Set<? extends K> keys) {
-        Map<K, V> retMap = new HashMap<>();
-        keys.stream().forEach(k -> {
-            V value = get(k);
-            if (value != null) {
-                retMap.put(k, value);
-            }
-        });
-        return retMap;
-    }
+	@Override
+	public Map<K, V> getAll(Set<? extends K> keys) {
+		Map<K, V> retMap = new HashMap<>();
+		keys.stream().forEach(k -> {
+			V value = get(k);
+			if (value != null) {
+				retMap.put(k, value);
+			}
+		});
+		return retMap;
+	}
 
-    @Override
-    public boolean containsKey(K key) {
-        exceptionIfClosed();
-        return data.containsKey(key);
-    }
+	@Override
+	public boolean containsKey(K key) {
+		exceptionIfClosed();
+		return data.containsKey(key);
+	}
 
-    @Override
-    public void loadAll(Set<? extends K> keys, boolean replaceExistingValues, CompletionListener completionListener) {
-        Optional<CompletionListener> listener = Optional.ofNullable(completionListener);
+	@Override
+	public void loadAll(Set<? extends K> keys, boolean replaceExistingValues, CompletionListener completionListener) {
+		Optional<CompletionListener> listener = Optional.ofNullable(completionListener);
 
-        try { // Should be in another thread
-            for (K key : keys) {
-                if (replaceExistingValues && containsKey(key)) {
-                    expire(key);
-                }
-                get(key);
-            }
-        } catch (Exception e) {
-            listener.ifPresent(l -> l.onException(e));
-            return;
-        }
+		try { // Should be in another thread
+			for (K key : keys) {
+				if (replaceExistingValues && containsKey(key)) {
+					expire(key);
+				}
+				get(key);
+			}
+		} catch (Exception e) {
+			listener.ifPresent(l -> l.onException(e));
+			return;
+		}
 
-        listener.ifPresent(CompletionListener::onCompletion);
-    }
+		listener.ifPresent(CompletionListener::onCompletion);
+	}
 
-    @Override
-    public void put(K key, V value) {
-        getAndPut(key, value);
-    }
+	@Override
+	public void put(K key, V value) {
+		getAndPut(key, value);
+	}
 
-    @Override
-    public V getAndPut(K key, V value) {
-        exceptionIfClosed();
-        statistics.ifPresent(SCacheStatisticsMXBean::get);
-        statistics.ifPresent(SCacheStatisticsMXBean::put);
-        expiryCheck(key);
-        V old = data.put(key, value);
-        eventListenerDispatcher.event(old == null ? EventType.CREATED : EventType.UPDATED, key, value, old);
-        writeThrough(key, value);
-        expiry.compute(key, (k, v) -> v == null ? expiryDataFactory.create() : v.update());
-        return old;
-    }
+	@Override
+	public V getAndPut(K key, V value) {
+		exceptionIfClosed();
+		statistics.ifPresent(SCacheStatisticsMXBean::get);
+		statistics.ifPresent(SCacheStatisticsMXBean::put);
+		expiryCheck(key);
+		V old = data.put(key, value);
+		eventListenerDispatcher.event(old == null ? EventType.CREATED : EventType.UPDATED, key, value, old);
+		writeThrough(key, value);
+		expiry.compute(key, (k, v) -> v == null ? expiryDataFactory.create() : v.update());
+		return old;
+	}
 
-    @Override
-    public void putAll(Map<? extends K, ? extends V> map) {
-        map.entrySet().stream().forEach(e -> put(e.getKey(), e.getValue()));
-    }
+	@Override
+	public void putAll(Map<? extends K, ? extends V> map) {
+		map.entrySet().stream().forEach(e -> put(e.getKey(), e.getValue()));
+	}
 
-    @Override
-    public boolean putIfAbsent(K key, V value) {
-        exceptionIfClosed();
-        boolean wasPut = data.putIfAbsent(key, value) == null;
-        if (wasPut) {
-            statistics.ifPresent(SCacheStatisticsMXBean::put);
-            eventListenerDispatcher.event(EventType.CREATED, key, value, null);
-            writeThrough(key, value);
-            expiry.put(key, expiryDataFactory.create());
-        }
-        return wasPut;
-    }
+	@Override
+	public boolean putIfAbsent(K key, V value) {
+		exceptionIfClosed();
+		boolean wasPut = data.putIfAbsent(key, value) == null;
+		if (wasPut) {
+			statistics.ifPresent(SCacheStatisticsMXBean::put);
+			eventListenerDispatcher.event(EventType.CREATED, key, value, null);
+			writeThrough(key, value);
+			expiry.put(key, expiryDataFactory.create());
+		}
+		return wasPut;
+	}
 
-    @Override
-    public boolean remove(K key) {
-        exceptionIfClosed();
-        boolean wasRemoved = data.remove(key) != null;
-        if (wasRemoved) {
-            statistics.ifPresent(SCacheStatisticsMXBean::remove);
-            removeThrough(key);
-            expiry.remove(key);
-        }
-        return wasRemoved;
-    }
+	@Override
+	public boolean remove(K key) {
+		exceptionIfClosed();
+		boolean wasRemoved = data.remove(key) != null;
+		if (wasRemoved) {
+			statistics.ifPresent(SCacheStatisticsMXBean::remove);
+			removeThrough(key);
+			expiry.remove(key);
+		}
+		return wasRemoved;
+	}
 
-    @Override
-    public boolean remove(K key, V oldValue) {
-        exceptionIfClosed();
-        boolean wasRemoved = data.remove(key, oldValue);
-        if (wasRemoved) {
-            statistics.ifPresent(SCacheStatisticsMXBean::remove);
-            removeThrough(key);
-            expiry.remove(key);
-        }
-        return wasRemoved;
-    }
+	@Override
+	public boolean remove(K key, V oldValue) {
+		exceptionIfClosed();
+		boolean wasRemoved = data.remove(key, oldValue);
+		if (wasRemoved) {
+			statistics.ifPresent(SCacheStatisticsMXBean::remove);
+			removeThrough(key);
+			expiry.remove(key);
+		}
+		return wasRemoved;
+	}
 
-    @Override
-    public V getAndRemove(K key) {
-        V value = get(key);
-        remove(key);
-        return value;
-    }
+	@Override
+	public V getAndRemove(K key) {
+		V value = get(key);
+		remove(key);
+		return value;
+	}
 
-    @Override
-    public boolean replace(K key, V oldValue, V newValue) {
-        exceptionIfClosed();
-        boolean wasPut = data.replace(key, oldValue, newValue);
-        if (wasPut) {
-            writeThrough(key, newValue);
-            expiry.get(key).update();
-        }
-        return wasPut;
-    }
+	@Override
+	public boolean replace(K key, V oldValue, V newValue) {
+		exceptionIfClosed();
+		boolean wasPut = data.replace(key, oldValue, newValue);
+		if (wasPut) {
+			writeThrough(key, newValue);
+			expiry.get(key).update();
+		}
+		return wasPut;
+	}
 
-    @Override
-    public boolean replace(K key, V value) {
-        exceptionIfClosed();
-        boolean wasPut = data.replace(key, value) != null;
-        if (wasPut) {
-            writeThrough(key, value);
-            expiry.get(key).update();
-        }
-        return wasPut;
-    }
+	@Override
+	public boolean replace(K key, V value) {
+		exceptionIfClosed();
+		boolean wasPut = data.replace(key, value) != null;
+		if (wasPut) {
+			writeThrough(key, value);
+			expiry.get(key).update();
+		}
+		return wasPut;
+	}
 
-    @Override
-    public V getAndReplace(K key, V value) {
-        exceptionIfClosed();
-        expiryCheck(key);
-        expiry.computeIfPresent(key, (k, v) -> {
-            statistics.ifPresent(SCacheStatisticsMXBean::get);
-            return v.update();
-        });
-        return data.replace(key, value);
-    }
+	@Override
+	public V getAndReplace(K key, V value) {
+		exceptionIfClosed();
+		expiryCheck(key);
+		expiry.computeIfPresent(key, (k, v) -> {
+			statistics.ifPresent(SCacheStatisticsMXBean::get);
+			return v.update();
+		});
+		return data.replace(key, value);
+	}
 
-    @Override
-    public void removeAll(Set<? extends K> keys) {
-        keys.stream().forEach(this::remove);
-    }
+	@Override
+	public void removeAll(Set<? extends K> keys) {
+		keys.stream().forEach(this::remove);
+	}
 
-    @Override
-    public void removeAll() {
-        exceptionIfClosed();
-        removeAll(data.keySet());
-    }
+	@Override
+	public void removeAll() {
+		exceptionIfClosed();
+		removeAll(data.keySet());
+	}
 
-    @Override
-    public void clear() {
-        data.clear();
-        expiry.clear();
-    }
+	@Override
+	public void clear() {
+		data.clear();
+		expiry.clear();
+	}
 
-    @Override
-    public <C extends Configuration<K, V>> C getConfiguration(Class<C> clazz) {
-        if (clazz.isInstance(configuration)) {
-            return clazz.cast(configuration);
-        }
+	@Override
+	public <C extends Configuration<K, V>> C getConfiguration(Class<C> clazz) {
+		if (clazz.isInstance(configuration)) {
+			return clazz.cast(configuration);
+		}
 
-        throw new IllegalArgumentException();
-    }
+		throw new IllegalArgumentException();
+	}
 
-    @Override
-    public <T> T invoke(K key, EntryProcessor<K, V, T> entryProcessor, Object... arguments) throws EntryProcessorException {
-        V value = get(key);
-        SMutableEntry<K, V> entry = new SMutableEntry<>(this, (value != null) ? key : null);
-        return entryProcessor.process(entry, arguments);
-    }
+	@Override
+	public <T> T invoke(K key, EntryProcessor<K, V, T> entryProcessor, Object... arguments) throws EntryProcessorException {
+		V value = get(key);
+		SMutableEntry<K, V> entry = new SMutableEntry<>(this, (value != null) ? key : null);
+		return entryProcessor.process(entry, arguments);
+	}
 
-    @Override
-    public <T> Map<K, EntryProcessorResult<T>> invokeAll(Set<? extends K> keys, EntryProcessor<K, V, T> entryProcessor, Object... arguments) {
-        Map<K, EntryProcessorResult<T>> resultMap = new HashMap<>();
-        Cache<K, V> cache = this;
-        keys.stream().forEach(k -> {
-            V v = get(k);
-            if (v != null) {
-                resultMap.put(k, () -> entryProcessor.process(new SMutableEntry<>(cache, k), arguments));
-            }
-        });
-        return resultMap;
-    }
+	@Override
+	public <T> Map<K, EntryProcessorResult<T>> invokeAll(Set<? extends K> keys, EntryProcessor<K, V, T> entryProcessor, Object... arguments) {
+		Map<K, EntryProcessorResult<T>> resultMap = new HashMap<>();
+		Cache<K, V> cache = this;
+		keys.stream().forEach(k -> {
+			V v = get(k);
+			if (v != null) {
+				resultMap.put(k, () -> entryProcessor.process(new SMutableEntry<>(cache, k), arguments));
+			}
+		});
+		return resultMap;
+	}
 
-    @Override
-    public String getName() {
-        return name;
-    }
+	@Override
+	public String getName() {
+		return name;
+	}
 
-    @Override
-    public CacheManager getCacheManager() {
-        return cacheManager;
-    }
+	@Override
+	public CacheManager getCacheManager() {
+		return cacheManager;
+	}
 
-    @Override
-    public void close() {
-        if (closed.compareAndSet(false, true)) {
-            if (!cacheManager.isClosed()) {
-                cacheManager.destroyCache(name);
-            }
-            clear();
-        }
-    }
+	@Override
+	public void close() {
+		if (closed.compareAndSet(false, true)) {
+			if (!cacheManager.isClosed()) {
+				cacheManager.destroyCache(name);
+			}
+			clear();
+		}
+	}
 
-    @Override
-    public boolean isClosed() {
-        return closed.get();
-    }
+	@Override
+	public boolean isClosed() {
+		return closed.get();
+	}
 
-    @Override
-    public <T> T unwrap(Class<T> clazz) {
-        if (clazz.isAssignableFrom(this.getClass())) {
-            return clazz.cast(this);
-        }
+	@Override
+	public <T> T unwrap(Class<T> clazz) {
+		if (clazz.isAssignableFrom(this.getClass())) {
+			return clazz.cast(this);
+		}
 
-        throw new IllegalArgumentException();
-    }
+		throw new IllegalArgumentException();
+	}
 
-    @Override
-    public void registerCacheEntryListener(CacheEntryListenerConfiguration<K, V> cacheEntryListenerConfiguration) {
-        eventListenerDispatcher.registerCacheEntryListener(cacheEntryListenerConfiguration);
-    }
+	@Override
+	public void registerCacheEntryListener(CacheEntryListenerConfiguration<K, V> cacheEntryListenerConfiguration) {
+		eventListenerDispatcher.registerCacheEntryListener(cacheEntryListenerConfiguration);
+	}
 
-    @Override
-    public void deregisterCacheEntryListener(CacheEntryListenerConfiguration<K, V> cacheEntryListenerConfiguration) {
-        eventListenerDispatcher.deregisterCacheEntryListener(cacheEntryListenerConfiguration);
-    }
+	@Override
+	public void deregisterCacheEntryListener(CacheEntryListenerConfiguration<K, V> cacheEntryListenerConfiguration) {
+		eventListenerDispatcher.deregisterCacheEntryListener(cacheEntryListenerConfiguration);
+	}
 
-    @Override
-    public Iterator<Entry<K, V>> iterator() {
-        return data.entrySet().stream().map(e -> (Entry<K, V>) new SEntry<>(e)).iterator();
-    }
+	@Override
+	public Iterator<Entry<K, V>> iterator() {
+		return data.entrySet().stream().map(e -> (Entry<K, V>) new SEntry<>(e)).iterator();
+	}
 
-    private void exceptionIfClosed() {
-        if (closed.get()) {
-            throw new IllegalStateException("Cache is closed.");
-        }
-    }
+	private void exceptionIfClosed() {
+		if (closed.get()) {
+			throw new IllegalStateException("Cache is closed.");
+		}
+	}
 
-    private V readThrough(K key) {
-        if (!(loader.isPresent() && configuration.isReadThrough())) {
-            return null;
-        }
-        statistics.ifPresent(SCacheStatisticsMXBean::readThrough);
-        V value = loader.get().load(key);
-        if (value != null) {
-            data.put(key, value);
-        }
+	private V readThrough(K key) {
+		if (!(loader.isPresent() && configuration.isReadThrough())) {
+			return null;
+		}
+		statistics.ifPresent(SCacheStatisticsMXBean::readThrough);
+		V value = loader.get().load(key);
+		if (value != null) {
+			data.put(key, value);
+		}
 
-        return value;
-    }
+		return value;
+	}
 
-    private void writeThrough(K key, V value) {
-        if (!(writer.isPresent() && configuration.isWriteThrough())) {
-            return;
-        }
-        statistics.ifPresent(SCacheStatisticsMXBean::writeThrough);
-        writer.get().write(new SEntry<>(key, value));
+	private void writeThrough(K key, V value) {
+		if (!(writer.isPresent() && configuration.isWriteThrough())) {
+			return;
+		}
+		statistics.ifPresent(SCacheStatisticsMXBean::writeThrough);
+		writer.get().write(new SEntry<>(key, value));
 
-    }
+	}
 
-    private void removeThrough(K key) {
-        eventListenerDispatcher.event(EventType.REMOVED, key, null, null);
-        if (!(writer.isPresent() && configuration.isWriteThrough())) {
-            return;
-        }
-        statistics.ifPresent(SCacheStatisticsMXBean::removeThrough);
-        writer.get().delete(key);
-    }
+	private void removeThrough(K key) {
+		eventListenerDispatcher.event(EventType.REMOVED, key, null, null);
+		if (!(writer.isPresent() && configuration.isWriteThrough())) {
+			return;
+		}
+		statistics.ifPresent(SCacheStatisticsMXBean::removeThrough);
+		writer.get().delete(key);
+	}
 
-    private void expiryCheck(K key) {
-        SExpiryData expiryData = expiry.get(key);
-        if (expiryData != null && expiryData.expired()) {
-            expire(key);
-        }
-    }
+	private void expiryCheck(K key) {
+		SExpiryData expiryData = expiry.get(key);
+		if (expiryData != null && expiryData.expired()) {
+			expire(key);
+		}
+	}
 
-    private void expire(K key) {
-        eventListenerDispatcher.event(EventType.EXPIRED, key, null, null);
-        statistics.ifPresent(SCacheStatisticsMXBean::eviction);
-        expiry.remove(key);
-        data.remove(key);
-    }
+	private void expire(K key) {
+		eventListenerDispatcher.event(EventType.EXPIRED, key, null, null);
+		statistics.ifPresent(SCacheStatisticsMXBean::eviction);
+		expiry.remove(key);
+		data.remove(key);
+	}
 
-    void setClock(Supplier<Long> clock) {
-        this.clock = clock;
-    }
+	void setClock(Supplier<Long> clock) {
+		this.clock = clock;
+	}
 
-    public SCacheStatisticsMXBean getStatistics() {
-        return statistics.orElse(null);
-    }
+	public SCacheStatisticsMXBean getStatistics() {
+		return statistics.orElse(null);
+	}
 
 }

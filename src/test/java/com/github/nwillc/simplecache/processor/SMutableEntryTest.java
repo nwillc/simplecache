@@ -29,41 +29,41 @@ import javax.cache.spi.CachingProvider;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class SMutableEntryTest {
-    private Cache<Long,String> cache;
-    private SMutableEntry<Long, String> entry;
+	private Cache<Long, String> cache;
+	private SMutableEntry<Long, String> entry;
 
-    @SuppressWarnings("unchecked")
-    @Before
-    public void setUp() throws Exception {
-        CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
-        CacheManager cacheManager = cachingProvider.getCacheManager();
-        cache = cacheManager.createCache(this.getClass().getSimpleName(), new MutableConfiguration<>());
-        cache.put(0L, "foo");
-        entry = new SMutableEntry<>(cache, 0L);
-    }
+	@SuppressWarnings("unchecked")
+	@Before
+	public void setUp() throws Exception {
+		CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
+		CacheManager cacheManager = cachingProvider.getCacheManager();
+		cache = cacheManager.createCache(this.getClass().getSimpleName(), new MutableConfiguration<>());
+		cache.put(0L, "foo");
+		entry = new SMutableEntry<>(cache, 0L);
+	}
 
-    @Test
-    public void testExists() throws Exception {
-        assertThat(entry.exists()).isTrue();
-    }
+	@Test
+	public void testExists() throws Exception {
+		assertThat(entry.exists()).isTrue();
+	}
 
-    @Test
-    public void testNotExists() throws Exception {
-        entry = new SMutableEntry<>(cache, 1L);
-        assertThat(entry.exists()).isFalse();
-    }
+	@Test
+	public void testNotExists() throws Exception {
+		entry = new SMutableEntry<>(cache, 1L);
+		assertThat(entry.exists()).isFalse();
+	}
 
-    @Test
-    public void testRemove() throws Exception {
-        assertThat(cache.containsKey(0L)).isTrue();
-        entry.remove();
-        assertThat(cache.containsKey(0L)).isFalse();
-    }
+	@Test
+	public void testRemove() throws Exception {
+		assertThat(cache.containsKey(0L)).isTrue();
+		entry.remove();
+		assertThat(cache.containsKey(0L)).isFalse();
+	}
 
-    @Test
-    public void testSetValue() throws Exception {
-        assertThat(entry.getValue()).isEqualTo("foo");
-        entry.setValue("bar");
-        assertThat(entry.getValue()).isEqualTo("bar");
-    }
+	@Test
+	public void testSetValue() throws Exception {
+		assertThat(entry.getValue()).isEqualTo("foo");
+		entry.setValue("bar");
+		assertThat(entry.getValue()).isEqualTo("bar");
+	}
 }

@@ -22,47 +22,47 @@ import javax.cache.event.EventType;
 import java.util.Optional;
 
 public class SCacheEntryEvent<K, V> extends CacheEntryEvent<K, V> {
-    private final Optional<V> old;
-    private final K key;
-    private final V value;
+	private final Optional<V> old;
+	private final K key;
+	private final V value;
 
-    public SCacheEntryEvent(Cache source, EventType eventType, K key, V value) {
-        this(source, eventType, key, value, null);
-    }
+	public SCacheEntryEvent(Cache source, EventType eventType, K key, V value) {
+		this(source, eventType, key, value, null);
+	}
 
-    public SCacheEntryEvent(Cache source, EventType eventType, K key, V value, V old) {
-        super(source, eventType);
-        this.key = key;
-        this.value = value;
-        this.old = Optional.ofNullable(old);
-    }
+	public SCacheEntryEvent(Cache source, EventType eventType, K key, V value, V old) {
+		super(source, eventType);
+		this.key = key;
+		this.value = value;
+		this.old = Optional.ofNullable(old);
+	}
 
-    @Override
-    public V getOldValue() {
-        return old.orElse(null);
-    }
+	@Override
+	public V getOldValue() {
+		return old.orElse(null);
+	}
 
-    @Override
-    public boolean isOldValueAvailable() {
-        return old.isPresent();
-    }
+	@Override
+	public boolean isOldValueAvailable() {
+		return old.isPresent();
+	}
 
-    @Override
-    public K getKey() {
-        return key;
-    }
+	@Override
+	public K getKey() {
+		return key;
+	}
 
-    @Override
-    public V getValue() {
-        return value;
-    }
+	@Override
+	public V getValue() {
+		return value;
+	}
 
-    @Override
-    public <T> T unwrap(Class<T> clazz) {
-        if (clazz.isAssignableFrom(this.getClass())) {
-            return clazz.cast(this);
-        }
+	@Override
+	public <T> T unwrap(Class<T> clazz) {
+		if (clazz.isAssignableFrom(this.getClass())) {
+			return clazz.cast(this);
+		}
 
-        throw new IllegalArgumentException();
-    }
+		throw new IllegalArgumentException();
+	}
 }

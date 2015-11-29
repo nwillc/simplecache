@@ -29,58 +29,58 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.Mockito.mock;
 
 public class SCacheEntryEventTest {
-    private Cache cache = mock(Cache.class);
-    private CacheEntryEvent<String, Long> entryEvent;
+	private Cache cache = mock(Cache.class);
+	private CacheEntryEvent<String, Long> entryEvent;
 
-    @Before
-    public void setUp() throws Exception {
-        entryEvent = new SCacheEntryEvent<>(cache, EventType.CREATED, "foo", 0L, 1L);
-    }
+	@Before
+	public void setUp() throws Exception {
+		entryEvent = new SCacheEntryEvent<>(cache, EventType.CREATED, "foo", 0L, 1L);
+	}
 
-    @Test
-    public void testAltContructor() throws Exception {
-        CacheEntryEvent<String,Long> entryEvent2 =
-                new SCacheEntryEvent<>(cache, EventType.CREATED, "foo", 0L);
-        assertThat(entryEvent2.getEventType()).isEqualTo(EventType.CREATED);
-        assertThat(entryEvent2.getKey()).isEqualTo("foo");
-        assertThat(entryEvent2.getValue()).isEqualTo(0L);
-        assertThat(entryEvent2.getOldValue()).isNull();
-    }
+	@Test
+	public void testAltContructor() throws Exception {
+		CacheEntryEvent<String, Long> entryEvent2 =
+				new SCacheEntryEvent<>(cache, EventType.CREATED, "foo", 0L);
+		assertThat(entryEvent2.getEventType()).isEqualTo(EventType.CREATED);
+		assertThat(entryEvent2.getKey()).isEqualTo("foo");
+		assertThat(entryEvent2.getValue()).isEqualTo(0L);
+		assertThat(entryEvent2.getOldValue()).isNull();
+	}
 
-    @Test
-    public void testGetOldValueNotAvailable() throws Exception {
-        entryEvent = new SCacheEntryEvent<>(cache, EventType.CREATED, "foo", 0L, null);
+	@Test
+	public void testGetOldValueNotAvailable() throws Exception {
+		entryEvent = new SCacheEntryEvent<>(cache, EventType.CREATED, "foo", 0L, null);
 
-        assertThat(entryEvent.isOldValueAvailable()).isFalse();
-        assertThat(entryEvent.getOldValue()).isNull();
-    }
+		assertThat(entryEvent.isOldValueAvailable()).isFalse();
+		assertThat(entryEvent.getOldValue()).isNull();
+	}
 
-    @Test
-    public void testGetOldValueAvailable() throws Exception {
-        assertThat(entryEvent.isOldValueAvailable()).isTrue();
-        assertThat(entryEvent.getOldValue()).isEqualTo(1L);
-    }
+	@Test
+	public void testGetOldValueAvailable() throws Exception {
+		assertThat(entryEvent.isOldValueAvailable()).isTrue();
+		assertThat(entryEvent.getOldValue()).isEqualTo(1L);
+	}
 
-    @Test
-    public void testGetKey() throws Exception {
-        assertThat(entryEvent.getKey()).isEqualTo("foo");
-    }
+	@Test
+	public void testGetKey() throws Exception {
+		assertThat(entryEvent.getKey()).isEqualTo("foo");
+	}
 
-    @Test
-    public void testGetValue() throws Exception {
-        assertThat(entryEvent.getValue()).isEqualTo(0L);
-    }
+	@Test
+	public void testGetValue() throws Exception {
+		assertThat(entryEvent.getValue()).isEqualTo(0L);
+	}
 
 
-    @Test
-    public void testUnwrap() throws Exception {
-        SCacheEntryEvent sCacheEntryEvent = entryEvent.unwrap(SCacheEntryEvent.class);
-        AssertionsForClassTypes.assertThat(sCacheEntryEvent).isNotNull();
-        AssertionsForClassTypes.assertThat(sCacheEntryEvent).isInstanceOf(SCacheEntryEvent.class);
-    }
+	@Test
+	public void testUnwrap() throws Exception {
+		SCacheEntryEvent sCacheEntryEvent = entryEvent.unwrap(SCacheEntryEvent.class);
+		AssertionsForClassTypes.assertThat(sCacheEntryEvent).isNotNull();
+		AssertionsForClassTypes.assertThat(sCacheEntryEvent).isInstanceOf(SCacheEntryEvent.class);
+	}
 
-    @Test
-    public void testUnwrapFail() throws Exception {
-        assertThatThrownBy(() -> entryEvent.unwrap(String.class)).isInstanceOf(IllegalArgumentException.class);
-    }
+	@Test
+	public void testUnwrapFail() throws Exception {
+		assertThatThrownBy(() -> entryEvent.unwrap(String.class)).isInstanceOf(IllegalArgumentException.class);
+	}
 }

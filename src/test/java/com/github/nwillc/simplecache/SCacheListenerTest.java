@@ -27,43 +27,45 @@ import javax.cache.Caching;
 import javax.cache.configuration.Factory;
 import javax.cache.configuration.MutableCacheEntryListenerConfiguration;
 import javax.cache.configuration.MutableConfiguration;
-import javax.cache.event.*;
+import javax.cache.event.CacheEntryCreatedListener;
+import javax.cache.event.CacheEntryExpiredListener;
+import javax.cache.event.CacheEntryListener;
+import javax.cache.event.CacheEntryRemovedListener;
+import javax.cache.event.CacheEntryUpdatedListener;
 import javax.cache.expiry.CreatedExpiryPolicy;
 import javax.cache.expiry.Duration;
 import javax.cache.spi.CachingProvider;
-
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.fail;
 
 @SuppressWarnings("unchecked")
 public class SCacheListenerTest {
-    private CacheManager cacheManager;
+	private CacheManager cacheManager;
 
-    @Before
-    public void setUp() throws Exception {
-        CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
-        cacheManager = cachingProvider.getCacheManager();
-    }
+	@Before
+	public void setUp() throws Exception {
+		CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
+		cacheManager = cachingProvider.getCacheManager();
+	}
 
-    @Test
-    public void testNoListenerConfig() throws Exception {
-        Cache<String, Long> cache = cacheManager.createCache("no listeners",new MutableConfiguration<>());
-        assertThat(cache.getConfiguration(MutableConfiguration.class).getCacheEntryListenerConfigurations()).hasSize(0);
-    }
+	@Test
+	public void testNoListenerConfig() throws Exception {
+		Cache<String, Long> cache = cacheManager.createCache("no listeners", new MutableConfiguration<>());
+		assertThat(cache.getConfiguration(MutableConfiguration.class).getCacheEntryListenerConfigurations()).hasSize(0);
+	}
 
-    @Test
+	@Test
 	public void testCreatedListener() throws Exception {
-        final Semaphore semaphore = new Semaphore(1);
+		final Semaphore semaphore = new Semaphore(1);
 
-        semaphore.acquire();
+		semaphore.acquire();
 
-		Factory<CacheEntryListener<String,Long>> listenerFactory =
-                () -> (CacheEntryCreatedListener<String, Long>) cacheEntryEvents -> semaphore.release();
+		Factory<CacheEntryListener<String, Long>> listenerFactory =
+				() -> (CacheEntryCreatedListener<String, Long>) cacheEntryEvents -> semaphore.release();
 
 		MutableCacheEntryListenerConfiguration<String, Long> listenerConfig
 				= new MutableCacheEntryListenerConfiguration<>(listenerFactory, null, false, true);
@@ -74,95 +76,95 @@ public class SCacheListenerTest {
 		configuration.addCacheEntryListenerConfiguration(listenerConfig);
 		AssertionsForInterfaceTypes.assertThat(configuration.getCacheEntryListenerConfigurations()).hasSize(1);
 
-        Cache<String, Long> cache = cacheManager.createCache(this.getClass().getSimpleName(), configuration);
-        cache.put("foo", 0L);
-        if (!semaphore.tryAcquire(1, 5, TimeUnit.SECONDS)) {
-            fail("never notified");
-        }
+		Cache<String, Long> cache = cacheManager.createCache(this.getClass().getSimpleName(), configuration);
+		cache.put("foo", 0L);
+		if (!semaphore.tryAcquire(1, 5, TimeUnit.SECONDS)) {
+			fail("never notified");
+		}
 	}
 
-    @Test
-    public void testUpdatedListener() throws Exception {
-        final Semaphore semaphore = new Semaphore(1);
+	@Test
+	public void testUpdatedListener() throws Exception {
+		final Semaphore semaphore = new Semaphore(1);
 
-        semaphore.acquire();
+		semaphore.acquire();
 
-        Factory<CacheEntryListener<String,Long>> listenerFactory =
-                () -> (CacheEntryUpdatedListener<String, Long>) cacheEntryEvents -> semaphore.release();
+		Factory<CacheEntryListener<String, Long>> listenerFactory =
+				() -> (CacheEntryUpdatedListener<String, Long>) cacheEntryEvents -> semaphore.release();
 
-        MutableCacheEntryListenerConfiguration<String, Long> listenerConfig
-                = new MutableCacheEntryListenerConfiguration<>(listenerFactory, null, false, true);
+		MutableCacheEntryListenerConfiguration<String, Long> listenerConfig
+				= new MutableCacheEntryListenerConfiguration<>(listenerFactory, null, false, true);
 
-        assertThat(listenerConfig).isNotNull();
-        MutableConfiguration<String, Long> configuration = new MutableConfiguration<>();
-        assertThat(configuration).isNotNull();
-        configuration.addCacheEntryListenerConfiguration(listenerConfig);
-        AssertionsForInterfaceTypes.assertThat(configuration.getCacheEntryListenerConfigurations()).hasSize(1);
+		assertThat(listenerConfig).isNotNull();
+		MutableConfiguration<String, Long> configuration = new MutableConfiguration<>();
+		assertThat(configuration).isNotNull();
+		configuration.addCacheEntryListenerConfiguration(listenerConfig);
+		AssertionsForInterfaceTypes.assertThat(configuration.getCacheEntryListenerConfigurations()).hasSize(1);
 
-        Cache<String, Long> cache = cacheManager.createCache(this.getClass().getSimpleName(), configuration);
-        cache.put("foo", 0L);
-        cache.put("foo", 1L);
-        if (!semaphore.tryAcquire(1, 5, TimeUnit.SECONDS)) {
-            fail("never notified");
-        }
-    }
+		Cache<String, Long> cache = cacheManager.createCache(this.getClass().getSimpleName(), configuration);
+		cache.put("foo", 0L);
+		cache.put("foo", 1L);
+		if (!semaphore.tryAcquire(1, 5, TimeUnit.SECONDS)) {
+			fail("never notified");
+		}
+	}
 
-    @Test
-    public void testRemovedListener() throws Exception {
-        final Semaphore semaphore = new Semaphore(1);
+	@Test
+	public void testRemovedListener() throws Exception {
+		final Semaphore semaphore = new Semaphore(1);
 
-        semaphore.acquire();
+		semaphore.acquire();
 
-        Factory<CacheEntryListener<String,Long>> listenerFactory =
-                () -> (CacheEntryRemovedListener<String, Long>) cacheEntryEvents -> semaphore.release();
+		Factory<CacheEntryListener<String, Long>> listenerFactory =
+				() -> (CacheEntryRemovedListener<String, Long>) cacheEntryEvents -> semaphore.release();
 
-        MutableCacheEntryListenerConfiguration<String, Long> listenerConfig
-                = new MutableCacheEntryListenerConfiguration<>(listenerFactory, null, false, true);
+		MutableCacheEntryListenerConfiguration<String, Long> listenerConfig
+				= new MutableCacheEntryListenerConfiguration<>(listenerFactory, null, false, true);
 
-        assertThat(listenerConfig).isNotNull();
-        MutableConfiguration<String, Long> configuration = new MutableConfiguration<>();
-        assertThat(configuration).isNotNull();
-        configuration.addCacheEntryListenerConfiguration(listenerConfig);
-        AssertionsForInterfaceTypes.assertThat(configuration.getCacheEntryListenerConfigurations()).hasSize(1);
+		assertThat(listenerConfig).isNotNull();
+		MutableConfiguration<String, Long> configuration = new MutableConfiguration<>();
+		assertThat(configuration).isNotNull();
+		configuration.addCacheEntryListenerConfiguration(listenerConfig);
+		AssertionsForInterfaceTypes.assertThat(configuration.getCacheEntryListenerConfigurations()).hasSize(1);
 
-        Cache<String, Long> cache = cacheManager.createCache("REMOVE", configuration);
-        cache.put("foo", 0L);
-        cache.remove("foo");
+		Cache<String, Long> cache = cacheManager.createCache("REMOVE", configuration);
+		cache.put("foo", 0L);
+		cache.remove("foo");
 
-        if (!semaphore.tryAcquire(1, 5, TimeUnit.SECONDS)) {
-            fail("never notified of removed");
-        }
-    }
+		if (!semaphore.tryAcquire(1, 5, TimeUnit.SECONDS)) {
+			fail("never notified of removed");
+		}
+	}
 
 
-    @Test
-    public void testExpiryListener() throws Exception {
-        final Semaphore semaphore = new Semaphore(1);
+	@Test
+	public void testExpiryListener() throws Exception {
+		final Semaphore semaphore = new Semaphore(1);
 
-        semaphore.acquire();
+		semaphore.acquire();
 
-        Factory<CacheEntryListener<String,Long>> listenerFactory =
-                () -> (CacheEntryExpiredListener<String, Long>) cacheEntryEvents -> semaphore.release();
+		Factory<CacheEntryListener<String, Long>> listenerFactory =
+				() -> (CacheEntryExpiredListener<String, Long>) cacheEntryEvents -> semaphore.release();
 
-        MutableCacheEntryListenerConfiguration<String, Long> listenerConfig
-                = new MutableCacheEntryListenerConfiguration<>(listenerFactory, null, false, true);
+		MutableCacheEntryListenerConfiguration<String, Long> listenerConfig
+				= new MutableCacheEntryListenerConfiguration<>(listenerFactory, null, false, true);
 
-        assertThat(listenerConfig).isNotNull();
-        MutableConfiguration<String, Long> configuration = new MutableConfiguration<>();
-        configuration.setExpiryPolicyFactory(() -> new CreatedExpiryPolicy(new Duration(TimeUnit.SECONDS, 5)));
-        assertThat(configuration).isNotNull();
-        configuration.addCacheEntryListenerConfiguration(listenerConfig);
-        AssertionsForInterfaceTypes.assertThat(configuration.getCacheEntryListenerConfigurations()).hasSize(1);
+		assertThat(listenerConfig).isNotNull();
+		MutableConfiguration<String, Long> configuration = new MutableConfiguration<>();
+		configuration.setExpiryPolicyFactory(() -> new CreatedExpiryPolicy(new Duration(TimeUnit.SECONDS, 5)));
+		assertThat(configuration).isNotNull();
+		configuration.addCacheEntryListenerConfiguration(listenerConfig);
+		AssertionsForInterfaceTypes.assertThat(configuration.getCacheEntryListenerConfigurations()).hasSize(1);
 
-        Cache<String, Long> cache = cacheManager.createCache(this.getClass().getSimpleName(), configuration);
-        SCache sCache = cache.unwrap(SCache.class);
-        final AtomicLong time = new AtomicLong(0L);
-        sCache.setClock(time::get);
-        cache.put("foo", 0L);
-        time.set(TimeUnit.SECONDS.toNanos(10));
-        cache.get("foo");
-        if (!semaphore.tryAcquire(1, 5, TimeUnit.SECONDS)) {
-            fail("never notified");
-        }
-    }
+		Cache<String, Long> cache = cacheManager.createCache(this.getClass().getSimpleName(), configuration);
+		SCache sCache = cache.unwrap(SCache.class);
+		final AtomicLong time = new AtomicLong(0L);
+		sCache.setClock(time::get);
+		cache.put("foo", 0L);
+		time.set(TimeUnit.SECONDS.toNanos(10));
+		cache.get("foo");
+		if (!semaphore.tryAcquire(1, 5, TimeUnit.SECONDS)) {
+			fail("never notified");
+		}
+	}
 }

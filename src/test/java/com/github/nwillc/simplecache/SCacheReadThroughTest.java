@@ -46,182 +46,182 @@ import static org.junit.Assert.fail;
 
 @SuppressWarnings("unchecked")
 public class SCacheReadThroughTest {
-    private static final String NAME = "hoard";
-    private final Map<Long, String> backingStore = new HashMap<>();
-    private final AtomicInteger readThroughs = new AtomicInteger(0);
-    private final Factory<CacheLoader<Long, String>> factory =
-            (Factory<CacheLoader<Long, String>>) () -> new SCacheLoader<>(k -> {
-                readThroughs.incrementAndGet();
-                return backingStore.get(k);
-            });
-    private Cache<Long, String> cache;
-    private CacheManager cacheManager;
+	private static final String NAME = "hoard";
+	private final Map<Long, String> backingStore = new HashMap<>();
+	private final AtomicInteger readThroughs = new AtomicInteger(0);
+	private final Factory<CacheLoader<Long, String>> factory =
+			(Factory<CacheLoader<Long, String>>) () -> new SCacheLoader<>(k -> {
+				readThroughs.incrementAndGet();
+				return backingStore.get(k);
+			});
+	private Cache<Long, String> cache;
+	private CacheManager cacheManager;
 
-    @Before
-    public void setUp() throws Exception {
-        CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
-        cacheManager = cachingProvider.getCacheManager();
-        MutableConfiguration<Long, String> configuration = new MutableConfiguration<>();
-        configuration.setReadThrough(true);
-        configuration.setCacheLoaderFactory(factory);
-        cache = cacheManager.createCache(NAME, configuration);
-        readThroughs.set(0);
-    }
+	@Before
+	public void setUp() throws Exception {
+		CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
+		cacheManager = cachingProvider.getCacheManager();
+		MutableConfiguration<Long, String> configuration = new MutableConfiguration<>();
+		configuration.setReadThrough(true);
+		configuration.setCacheLoaderFactory(factory);
+		cache = cacheManager.createCache(NAME, configuration);
+		readThroughs.set(0);
+	}
 
-    @Test
-    public void shouldIsReadThrough() throws Exception {
-        assertThat(cache.getConfiguration(CompleteConfiguration.class).isReadThrough()).isTrue();
-    }
+	@Test
+	public void shouldIsReadThrough() throws Exception {
+		assertThat(cache.getConfiguration(CompleteConfiguration.class).isReadThrough()).isTrue();
+	}
 
-    @Test
-    public void shouldReadThrough() throws Exception {
-        assertThat(cache).isEmpty();
-        backingStore.put(0L, "0");
-        String value = cache.get(0L);
-        assertThat(value).isEqualTo("0");
-        assertThat(readThroughs.get()).isEqualTo(1);
-    }
+	@Test
+	public void shouldReadThrough() throws Exception {
+		assertThat(cache).isEmpty();
+		backingStore.put(0L, "0");
+		String value = cache.get(0L);
+		assertThat(value).isEqualTo("0");
+		assertThat(readThroughs.get()).isEqualTo(1);
+	}
 
-    @Test
-    public void shouldReadThroughOnlyOnce() throws Exception {
-        assertThat(cache).isEmpty();
-        backingStore.put(0L, "0");
-        String value = cache.get(0L);
-        assertThat(value).isEqualTo("0");
-        assertThat(readThroughs.get()).isEqualTo(1);
-        value = cache.get(0L);
-        assertThat(value).isEqualTo("0");
-        assertThat(readThroughs.get()).isEqualTo(1);
-    }
+	@Test
+	public void shouldReadThroughOnlyOnce() throws Exception {
+		assertThat(cache).isEmpty();
+		backingStore.put(0L, "0");
+		String value = cache.get(0L);
+		assertThat(value).isEqualTo("0");
+		assertThat(readThroughs.get()).isEqualTo(1);
+		value = cache.get(0L);
+		assertThat(value).isEqualTo("0");
+		assertThat(readThroughs.get()).isEqualTo(1);
+	}
 
-    @Test
-    public void testReadThroughFails() throws Exception {
-        assertThat(cache).isEmpty();
-        assertThat(backingStore).isEmpty();
-        String value = cache.get(0L);
-        assertThat(value).isNull();
-        assertThat(readThroughs.get()).isEqualTo(1);
-    }
+	@Test
+	public void testReadThroughFails() throws Exception {
+		assertThat(cache).isEmpty();
+		assertThat(backingStore).isEmpty();
+		String value = cache.get(0L);
+		assertThat(value).isNull();
+		assertThat(readThroughs.get()).isEqualTo(1);
+	}
 
-    @Test
-    public void shouldNotReadThrough() throws Exception {
-        backingStore.put(0L, "0");
-        cache.put(0L, "bar");
-        String value = cache.get(0L);
-        assertThat(value).isEqualTo("bar");
-        assertThat(readThroughs.get()).isEqualTo(0);
-    }
+	@Test
+	public void shouldNotReadThrough() throws Exception {
+		backingStore.put(0L, "0");
+		cache.put(0L, "bar");
+		String value = cache.get(0L);
+		assertThat(value).isEqualTo("bar");
+		assertThat(readThroughs.get()).isEqualTo(0);
+	}
 
-    @Test
-    public void shouldReadThroughShutOff() throws Exception {
-        backingStore.put(0L, "0");
-        assertThat(cache.get(0L)).isEqualTo("0");
-        assertThat(readThroughs.get()).isEqualTo(1);
-        cache.getConfiguration(MutableConfiguration.class).setReadThrough(false);
-        backingStore.put(1L, "1");
-        assertThat(cache.get(1L)).isNull();
-        assertThat(readThroughs.get()).isEqualTo(1);
-    }
+	@Test
+	public void shouldReadThroughShutOff() throws Exception {
+		backingStore.put(0L, "0");
+		assertThat(cache.get(0L)).isEqualTo("0");
+		assertThat(readThroughs.get()).isEqualTo(1);
+		cache.getConfiguration(MutableConfiguration.class).setReadThrough(false);
+		backingStore.put(1L, "1");
+		assertThat(cache.get(1L)).isNull();
+		assertThat(readThroughs.get()).isEqualTo(1);
+	}
 
-    @Test
-    public void shouldHandleNoFunctor() throws Exception {
-        MutableConfiguration<Long, String> mutableConfiguration = cache.getConfiguration(MutableConfiguration.class);
-        mutableConfiguration.setCacheLoaderFactory(null);
-        cache = cacheManager.createCache(NAME + "broken", mutableConfiguration);
-        backingStore.put(1L, "1");
-        assertThat(cache.get(1L)).isNull();
-    }
+	@Test
+	public void shouldHandleNoFunctor() throws Exception {
+		MutableConfiguration<Long, String> mutableConfiguration = cache.getConfiguration(MutableConfiguration.class);
+		mutableConfiguration.setCacheLoaderFactory(null);
+		cache = cacheManager.createCache(NAME + "broken", mutableConfiguration);
+		backingStore.put(1L, "1");
+		assertThat(cache.get(1L)).isNull();
+	}
 
-    @Test
-    public void testLoadAllNoReplace() throws Exception {
-        backingStore.put(0L, "0");
-        cache.put(0L, "old");
-        backingStore.put(1L, "1");
-        Set<Long> keys = new HashSet<>();
-        keys.add(0L);
-        keys.add(1L);
-        assertThat(cache.containsKey(0L)).isTrue();
-        assertThat(cache.containsKey(1L)).isFalse();
-        final Semaphore completed = new Semaphore(1);
-        completed.acquire();
-        cache.loadAll(keys, false, new CompletionListener() {
-            @Override
-            public void onCompletion() {
-                completed.release();
-            }
+	@Test
+	public void testLoadAllNoReplace() throws Exception {
+		backingStore.put(0L, "0");
+		cache.put(0L, "old");
+		backingStore.put(1L, "1");
+		Set<Long> keys = new HashSet<>();
+		keys.add(0L);
+		keys.add(1L);
+		assertThat(cache.containsKey(0L)).isTrue();
+		assertThat(cache.containsKey(1L)).isFalse();
+		final Semaphore completed = new Semaphore(1);
+		completed.acquire();
+		cache.loadAll(keys, false, new CompletionListener() {
+			@Override
+			public void onCompletion() {
+				completed.release();
+			}
 
-            @Override
-            public void onException(Exception e) {
-                fail("Load failed");
-            }
-        });
-        if (!completed.tryAcquire(1, 5, TimeUnit.SECONDS)) {
-            fail("never completed");
-        }
-        assertThat(readThroughs.get()).isEqualTo(1);
-        assertThat(cache.get(0L)).isEqualTo("old");
-        assertThat(cache.containsKey(1L)).isTrue();
+			@Override
+			public void onException(Exception e) {
+				fail("Load failed");
+			}
+		});
+		if (!completed.tryAcquire(1, 5, TimeUnit.SECONDS)) {
+			fail("never completed");
+		}
+		assertThat(readThroughs.get()).isEqualTo(1);
+		assertThat(cache.get(0L)).isEqualTo("old");
+		assertThat(cache.containsKey(1L)).isTrue();
 
-    }
+	}
 
-    @Test
-    public void testLoadAllNoReplaceNoListener() throws Exception {
-        backingStore.put(0L, "0");
-        Set<Long> keys = new HashSet<>();
-        keys.add(0L);
-        assertThat(cache.containsKey(0L)).isFalse();
-        cache.loadAll(keys, false, null);
-        assertThat(cache.containsKey(0L)).isTrue();
-    }
+	@Test
+	public void testLoadAllNoReplaceNoListener() throws Exception {
+		backingStore.put(0L, "0");
+		Set<Long> keys = new HashSet<>();
+		keys.add(0L);
+		assertThat(cache.containsKey(0L)).isFalse();
+		cache.loadAll(keys, false, null);
+		assertThat(cache.containsKey(0L)).isTrue();
+	}
 
-    @Test
-    public void testLoadAllLoadsCache() throws Exception {
-        backingStore.put(0L, "0");
-        Set<Long> keys = new HashSet<>();
-        keys.add(0L);
-        assertThat(cache.containsKey(0L)).isFalse();
-        cache.loadAll(keys, false, null);
-        assertThat(cache).hasSize(1);
-        assertThat(readThroughs.get()).isEqualTo(1);
-        assertThat(cache.get(0L)).isEqualTo("0");
-        assertThat(readThroughs.get()).isEqualTo(1);
-    }
+	@Test
+	public void testLoadAllLoadsCache() throws Exception {
+		backingStore.put(0L, "0");
+		Set<Long> keys = new HashSet<>();
+		keys.add(0L);
+		assertThat(cache.containsKey(0L)).isFalse();
+		cache.loadAll(keys, false, null);
+		assertThat(cache).hasSize(1);
+		assertThat(readThroughs.get()).isEqualTo(1);
+		assertThat(cache.get(0L)).isEqualTo("0");
+		assertThat(readThroughs.get()).isEqualTo(1);
+	}
 
-    @Test
-    public void testLoadAllReplace() throws Exception {
-        backingStore.put(0L, "0");
-        cache.put(0L, "bad");
-        backingStore.put(1L, "1");
-        Set<Long> keys = new HashSet<>();
-        keys.add(0L);
-        keys.add(1L);
-        assertThat(cache.containsKey(0L)).isTrue();
-        assertThat(cache.containsKey(1L)).isFalse();
-        CompletionListenerFuture done = new CompletionListenerFuture();
-        cache.loadAll(keys, true, done);
-        try {
-            done.get(5, TimeUnit.SECONDS);
-        } catch (Exception e) {
-            fail(e.toString());
-        }
-        assertThat(readThroughs.get()).isEqualTo(keys.size());
-        assertThat(cache.get(0L)).isEqualTo("0");
-        assertThat(cache.containsKey(1L)).isTrue();
-    }
+	@Test
+	public void testLoadAllReplace() throws Exception {
+		backingStore.put(0L, "0");
+		cache.put(0L, "bad");
+		backingStore.put(1L, "1");
+		Set<Long> keys = new HashSet<>();
+		keys.add(0L);
+		keys.add(1L);
+		assertThat(cache.containsKey(0L)).isTrue();
+		assertThat(cache.containsKey(1L)).isFalse();
+		CompletionListenerFuture done = new CompletionListenerFuture();
+		cache.loadAll(keys, true, done);
+		try {
+			done.get(5, TimeUnit.SECONDS);
+		} catch (Exception e) {
+			fail(e.toString());
+		}
+		assertThat(readThroughs.get()).isEqualTo(keys.size());
+		assertThat(cache.get(0L)).isEqualTo("0");
+		assertThat(cache.containsKey(1L)).isTrue();
+	}
 
-    @Test
-    public void testListenForException() throws Exception {
-        MutableConfiguration<Long, String> configuration = new MutableConfiguration<>();
-        configuration.setReadThrough(true);
-        Factory<CacheLoader<Long, String>> failingLoaderFactory = () -> new SCacheLoader<>(k -> {
-            throw new RuntimeException("pop!");
-        });
-        configuration.setCacheLoaderFactory(failingLoaderFactory);
-        cache = cacheManager.createCache(NAME + "exception", configuration);
-        Set<Long> keys = new HashSet<>();
-        keys.add(0L);
-        CompletionListenerFuture done = new CompletionListenerFuture();
-        cache.loadAll(keys, true, done);
-        assertThatThrownBy(() -> done.get(2, TimeUnit.SECONDS)).isInstanceOf(ExecutionException.class);
-    }
+	@Test
+	public void testListenForException() throws Exception {
+		MutableConfiguration<Long, String> configuration = new MutableConfiguration<>();
+		configuration.setReadThrough(true);
+		Factory<CacheLoader<Long, String>> failingLoaderFactory = () -> new SCacheLoader<>(k -> {
+			throw new RuntimeException("pop!");
+		});
+		configuration.setCacheLoaderFactory(failingLoaderFactory);
+		cache = cacheManager.createCache(NAME + "exception", configuration);
+		Set<Long> keys = new HashSet<>();
+		keys.add(0L);
+		CompletionListenerFuture done = new CompletionListenerFuture();
+		cache.loadAll(keys, true, done);
+		assertThatThrownBy(() -> done.get(2, TimeUnit.SECONDS)).isInstanceOf(ExecutionException.class);
+	}
 }

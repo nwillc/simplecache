@@ -32,106 +32,121 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @SuppressWarnings("unchecked")
 public class SCacheManagerTest {
-    private final MutableConfiguration configuration = new MutableConfiguration();
-    private CacheManager cacheManager;
+	private final MutableConfiguration configuration = new MutableConfiguration();
+	private CacheManager cacheManager;
 
-    @Before
-    public void setUp() throws Exception {
-        cacheManager = Caching.getCachingProvider().getCacheManager();
-    }
+	@Before
+	public void setUp() throws Exception {
+		cacheManager = Caching.getCachingProvider().getCacheManager();
+	}
 
-    @Test
-    public void testGetCachingProvider() throws Exception {
-        CachingProvider cachingProvider = cacheManager.getCachingProvider();
-        assertThat(cachingProvider).isNotNull();
-        assertThat(cachingProvider).isInstanceOf(SCachingProvider.class);
-    }
+	@Test
+	public void testWithProperties() throws Exception {
+		Properties properties = new Properties();
+		properties.put("foo", "bar");
+		cacheManager = Caching.getCachingProvider().getCacheManager(null, null, properties);
+		assertThat(cacheManager.getProperties().get("foo")).isEqualTo("bar");
+	}
 
-    @Test
-    public void testGetClassLoader() throws Exception {
-        ClassLoader classLoader = cacheManager.getClassLoader();
-        assertThat(classLoader).isNotNull();
-        assertThat(classLoader).isInstanceOf(ClassLoader.class);
-    }
+	@Test
+	public void testWithoutProperties() throws Exception {
+		CachingProvider cachingProvider = Caching.getCachingProvider();
+		cacheManager = new SCacheManager((SCachingProvider) cachingProvider, null);
+		assertThat(cacheManager.getProperties()).isNotNull();
+	}
 
-    @Test
-    public void testGetProperties() throws Exception {
-        Properties properties = cacheManager.getProperties();
-        assertThat(properties).isNotNull();
-        assertThat(properties).isInstanceOf(Properties.class);
-    }
+	@Test
+	public void testGetCachingProvider() throws Exception {
+		CachingProvider cachingProvider = cacheManager.getCachingProvider();
+		assertThat(cachingProvider).isNotNull();
+		assertThat(cachingProvider).isInstanceOf(SCachingProvider.class);
+	}
 
-    @Test
-    public void testGetURI() throws Exception {
-        assertThatThrownBy(cacheManager::getURI).isInstanceOf(UnsupportedOperationException.class);
+	@Test
+	public void testGetClassLoader() throws Exception {
+		ClassLoader classLoader = cacheManager.getClassLoader();
+		assertThat(classLoader).isNotNull();
+		assertThat(classLoader).isInstanceOf(ClassLoader.class);
+	}
 
-    }
+	@Test
+	public void testGetProperties() throws Exception {
+		Properties properties = cacheManager.getProperties();
+		assertThat(properties).isNotNull();
+		assertThat(properties).isInstanceOf(Properties.class);
+	}
 
-    @SuppressWarnings("unchecked")
-    @Test
-    public void shouldCreateCache() throws Exception {
-        Cache cache = cacheManager.createCache("foo", configuration);
-        assertThat(cache).isNotNull();
-        assertThat(cache).isInstanceOf(SCache.class);
-    }
+	@Test
+	public void testGetURI() throws Exception {
+		assertThatThrownBy(cacheManager::getURI).isInstanceOf(UnsupportedOperationException.class);
 
-    @Test
-    public void shouldDestroyCache() throws Exception {
-        cacheManager.createCache("foo", configuration);
-        assertThat(cacheManager.getCache("foo")).isNotNull();
-        cacheManager.destroyCache("foo");
-        assertThat(cacheManager.getCache("foo")).isNull();
-    }
+	}
 
-    @Test
-    public void shouldGetCache() throws Exception {
-        assertThat(cacheManager.getCache("foo")).isNull();
-        cacheManager.createCache("foo", configuration);
-        assertThat(cacheManager.getCache("foo")).isNotNull();
-    }
+	@SuppressWarnings("unchecked")
+	@Test
+	public void shouldCreateCache() throws Exception {
+		Cache cache = cacheManager.createCache("foo", configuration);
+		assertThat(cache).isNotNull();
+		assertThat(cache).isInstanceOf(SCache.class);
+	}
 
-    @Test
-    public void shouldGetCache2() throws Exception {
-        assertThat(cacheManager.getCache("foo")).isNull();
-        cacheManager.createCache("foo", configuration);
-        assertThat(cacheManager.getCache("foo", String.class, Integer.class)).isNotNull();
-    }
+	@Test
+	public void shouldDestroyCache() throws Exception {
+		cacheManager.createCache("foo", configuration);
+		assertThat(cacheManager.getCache("foo")).isNotNull();
+		cacheManager.destroyCache("foo");
+		assertThat(cacheManager.getCache("foo")).isNull();
+	}
 
-    @Test
-    public void testGetCacheNames() throws Exception {
-        cacheManager.createCache("foo", configuration);
-        cacheManager.createCache("bar", configuration);
-        assertThat(cacheManager.getCacheNames()).contains("foo", "bar");
-    }
+	@Test
+	public void shouldGetCache() throws Exception {
+		assertThat(cacheManager.getCache("foo")).isNull();
+		cacheManager.createCache("foo", configuration);
+		assertThat(cacheManager.getCache("foo")).isNotNull();
+	}
 
-    @Test
-    public void testEnableManagement() throws Exception {
-        assertThatThrownBy(() -> cacheManager.enableManagement("foo", true)).isInstanceOf(UnsupportedOperationException.class);
-    }
+	@Test
+	public void shouldGetCache2() throws Exception {
+		assertThat(cacheManager.getCache("foo")).isNull();
+		cacheManager.createCache("foo", configuration);
+		assertThat(cacheManager.getCache("foo", String.class, Integer.class)).isNotNull();
+	}
 
-    @Test
-    public void testEnableStatistics() throws Exception {
-        assertThatThrownBy(() -> cacheManager.enableStatistics("foo", true)).isInstanceOf(UnsupportedOperationException.class);
-    }
+	@Test
+	public void testGetCacheNames() throws Exception {
+		cacheManager.createCache("foo", configuration);
+		cacheManager.createCache("bar", configuration);
+		assertThat(cacheManager.getCacheNames()).contains("foo", "bar");
+	}
 
-    @Test
-    public void testClose() throws Exception {
-        assertThat(cacheManager.isClosed()).isFalse();
-        cacheManager.close();
-        assertThat(cacheManager.isClosed()).isTrue();
-        assertThatThrownBy(() -> cacheManager.destroyCache("foo")).isInstanceOf(IllegalStateException.class);
-        cacheManager.close();
-    }
+	@Test
+	public void testEnableManagement() throws Exception {
+		assertThatThrownBy(() -> cacheManager.enableManagement("foo", true)).isInstanceOf(UnsupportedOperationException.class);
+	}
 
-    @Test
-    public void testUnwrap() throws Exception {
-        CacheManager cacheManager1 = cacheManager.unwrap(SCacheManager.class);
-        assertThat(cacheManager1).isNotNull();
-        assertThat(cacheManager1).isInstanceOf(SCacheManager.class);
-    }
+	@Test
+	public void testEnableStatistics() throws Exception {
+		assertThatThrownBy(() -> cacheManager.enableStatistics("foo", true)).isInstanceOf(UnsupportedOperationException.class);
+	}
 
-    @Test
-    public void testUnwrapFail() throws Exception {
-        assertThatThrownBy(() -> cacheManager.unwrap(String.class)).isInstanceOf(IllegalArgumentException.class);
-    }
+	@Test
+	public void testClose() throws Exception {
+		assertThat(cacheManager.isClosed()).isFalse();
+		cacheManager.close();
+		assertThat(cacheManager.isClosed()).isTrue();
+		assertThatThrownBy(() -> cacheManager.destroyCache("foo")).isInstanceOf(IllegalStateException.class);
+		cacheManager.close();
+	}
+
+	@Test
+	public void testUnwrap() throws Exception {
+		CacheManager cacheManager1 = cacheManager.unwrap(SCacheManager.class);
+		assertThat(cacheManager1).isNotNull();
+		assertThat(cacheManager1).isInstanceOf(SCacheManager.class);
+	}
+
+	@Test
+	public void testUnwrapFail() throws Exception {
+		assertThatThrownBy(() -> cacheManager.unwrap(String.class)).isInstanceOf(IllegalArgumentException.class);
+	}
 }

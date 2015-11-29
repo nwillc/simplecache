@@ -28,23 +28,23 @@ import static org.assertj.core.data.MapEntry.entry;
 
 public class SCacheLoaderTest {
 
-    private final SCacheLoader<Long, String> loader = new SCacheLoader<>(Object::toString);
+	private final SCacheLoader<Long, String> loader = new SCacheLoader<>(Object::toString);
 
-    @Before
-    public void setUp() throws Exception {
-        assertThat(loader).isInstanceOf(CacheLoader.class);
-    }
+	@Before
+	public void setUp() throws Exception {
+		assertThat(loader).isInstanceOf(CacheLoader.class);
+	}
 
-    @Test
-    public void testLoad() throws Exception {
-        assertThat(loader.load(0L)).isEqualTo("0");
-    }
+	@Test
+	public void testLoad() throws Exception {
+		assertThat(loader.load(0L)).isEqualTo("0");
+	}
 
-    @Test
-    public void testLoadAll() throws Exception {
-        List<Long> keys = new ArrayList<>();
-        keys.add(0L);
-        keys.add(1L);
-        assertThat(loader.loadAll(keys)).containsExactly(entry(0L, "0"), entry(1L, "1"));
-    }
+	@Test
+	public void testLoadAll() throws Exception {
+		List<Long> keys = new ArrayList<>();
+		keys.add(0L);
+		keys.add(1L);
+		assertThat(loader.loadAll(keys)).containsExactly(entry(0L, "0"), entry(1L, "1"));
+	}
 }

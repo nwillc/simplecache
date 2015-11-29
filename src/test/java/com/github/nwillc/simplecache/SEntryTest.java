@@ -19,7 +19,6 @@ package com.github.nwillc.simplecache;
 import org.junit.Test;
 
 import javax.cache.Cache;
-
 import java.util.AbstractMap;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
@@ -27,56 +26,56 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 public class SEntryTest {
 
-    @Test
-    public void testKV() throws Exception {
-        SEntry<Long, String> entry = new SEntry<>(0L, "foo");
-        assertThat(entry.getKey()).isEqualTo(0L);
-        assertThat(entry.getValue()).isEqualTo("foo");
-    }
+	@Test
+	public void testKV() throws Exception {
+		SEntry<Long, String> entry = new SEntry<>(0L, "foo");
+		assertThat(entry.getKey()).isEqualTo(0L);
+		assertThat(entry.getValue()).isEqualTo("foo");
+	}
 
-    @Test
-    public void testHashCode() throws Exception {
-        SEntry<Long, String> entry = new SEntry<>(0L, "foo");
-        SEntry<Long, String> entry1 = new SEntry<>(0L, "bar");
-        SEntry<Long, String> entry2 = new SEntry<>(1L, "foo");
+	@Test
+	public void testHashCode() throws Exception {
+		SEntry<Long, String> entry = new SEntry<>(0L, "foo");
+		SEntry<Long, String> entry1 = new SEntry<>(0L, "bar");
+		SEntry<Long, String> entry2 = new SEntry<>(1L, "foo");
 
-        assertThat(entry.hashCode()).isEqualTo(entry1.hashCode());
-        assertThat(entry.hashCode()).isNotEqualTo(entry2.hashCode());
-    }
+		assertThat(entry.hashCode()).isEqualTo(entry1.hashCode());
+		assertThat(entry.hashCode()).isNotEqualTo(entry2.hashCode());
+	}
 
-    @Test
-    public void testEquals() throws Exception {
-        SEntry<Long, String> entry = new SEntry<>(0L, "foo");
-        SEntry<Long, String> entry1 = new SEntry<>(0L, "bar");
-        SEntry<Long, String> entry2 = new SEntry<>(1L, "foo");
+	@Test
+	public void testEquals() throws Exception {
+		SEntry<Long, String> entry = new SEntry<>(0L, "foo");
+		SEntry<Long, String> entry1 = new SEntry<>(0L, "bar");
+		SEntry<Long, String> entry2 = new SEntry<>(1L, "foo");
 
-        assertThat(entry).isEqualTo(entry1);
-        assertThat(entry).isNotEqualTo(entry2);
+		assertThat(entry).isEqualTo(entry1);
+		assertThat(entry).isNotEqualTo(entry2);
 
-        AbstractMap.SimpleEntry<Long,String> simpleEntry = new AbstractMap.SimpleEntry<>(0L, "foo");
-        assertThat(entry).isNotEqualTo(simpleEntry);
-    }
+		AbstractMap.SimpleEntry<Long, String> simpleEntry = new AbstractMap.SimpleEntry<>(0L, "foo");
+		assertThat(entry).isNotEqualTo(simpleEntry);
+	}
 
-    @Test
-    public void shouldStore() throws Exception {
-        final Long key = 42L;
-        final String value = "The answer.";
+	@Test
+	public void shouldStore() throws Exception {
+		final Long key = 42L;
+		final String value = "The answer.";
 
-        SEntry<Long, String> kv = new SEntry<>(key, value);
-        assertThat(kv.getKey()).isEqualTo(key);
-        assertThat(kv.getValue()).isEqualTo(value);
-    }
+		SEntry<Long, String> kv = new SEntry<>(key, value);
+		assertThat(kv.getKey()).isEqualTo(key);
+		assertThat(kv.getValue()).isEqualTo(value);
+	}
 
-    @Test
-    public void testUnwrap() throws Exception {
-        Cache.Entry<Long, String> entry = new SEntry<>(0L, "foo");
+	@Test
+	public void testUnwrap() throws Exception {
+		Cache.Entry<Long, String> entry = new SEntry<>(0L, "foo");
 
-        assertThat(entry.unwrap(SEntry.class)).isEqualTo(entry);
-    }
+		assertThat(entry.unwrap(SEntry.class)).isEqualTo(entry);
+	}
 
-    @Test
-    public void testUnwrapFail() throws Exception {
-        Cache.Entry<Long, String> entry = new SEntry<>(0L, "foo");
-        assertThatThrownBy(() -> entry.unwrap(String.class)).isInstanceOf(IllegalArgumentException.class);
-    }
+	@Test
+	public void testUnwrapFail() throws Exception {
+		Cache.Entry<Long, String> entry = new SEntry<>(0L, "foo");
+		assertThatThrownBy(() -> entry.unwrap(String.class)).isInstanceOf(IllegalArgumentException.class);
+	}
 }

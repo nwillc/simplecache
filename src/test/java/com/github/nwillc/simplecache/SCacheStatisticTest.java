@@ -40,130 +40,130 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 
 @SuppressWarnings("unchecked")
 public class SCacheStatisticTest {
-    private SCache<Long, String> cache;
-    private CacheManager cacheManager;
-    private SCacheStatisticsMXBean statistics;
-    private Map<Long, String> backingStore;
+	private SCache<Long, String> cache;
+	private CacheManager cacheManager;
+	private SCacheStatisticsMXBean statistics;
+	private Map<Long, String> backingStore;
 
-    @Before
-    public void setUp() throws Exception {
-        backingStore = new HashMap<>();
-        CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
-        cacheManager = cachingProvider.getCacheManager();
-        MutableConfiguration configuration = new MutableConfiguration<>();
-        configuration.setStatisticsEnabled(true);
-        configuration.setExpiryPolicyFactory(() -> new CreatedExpiryPolicy(new Duration(TimeUnit.MINUTES, 1)));
-        configuration.setReadThrough(true);
-        configuration.setCacheLoaderFactory(() -> new SCacheLoader(backingStore::get));
-        configuration.setWriteThrough(true);
-        configuration.setCacheWriterFactory(() -> new SCacheWriter<Long, String>(backingStore::remove, e -> backingStore.put(e.getKey(), e.getValue())));
-        Cache cache = cacheManager.createCache(this.getClass().getSimpleName(), configuration);
-        this.cache = (SCache<Long, String>) cache.unwrap(SCache.class);
-        statistics = this.cache.getStatistics();
-    }
+	@Before
+	public void setUp() throws Exception {
+		backingStore = new HashMap<>();
+		CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
+		cacheManager = cachingProvider.getCacheManager();
+		MutableConfiguration configuration = new MutableConfiguration<>();
+		configuration.setStatisticsEnabled(true);
+		configuration.setExpiryPolicyFactory(() -> new CreatedExpiryPolicy(new Duration(TimeUnit.MINUTES, 1)));
+		configuration.setReadThrough(true);
+		configuration.setCacheLoaderFactory(() -> new SCacheLoader(backingStore::get));
+		configuration.setWriteThrough(true);
+		configuration.setCacheWriterFactory(() -> new SCacheWriter<Long, String>(backingStore::remove, e -> backingStore.put(e.getKey(), e.getValue())));
+		Cache cache = cacheManager.createCache(this.getClass().getSimpleName(), configuration);
+		this.cache = (SCache<Long, String>) cache.unwrap(SCache.class);
+		statistics = this.cache.getStatistics();
+	}
 
-    @Test
-    public void testIsEnabled() throws Exception {
-        assertThat(cache.getConfiguration(MutableConfiguration.class).isStatisticsEnabled()).isTrue();
-        assertThat(statistics).isNotNull();
-    }
+	@Test
+	public void testIsEnabled() throws Exception {
+		assertThat(cache.getConfiguration(MutableConfiguration.class).isStatisticsEnabled()).isTrue();
+		assertThat(statistics).isNotNull();
+	}
 
-    @Test
-    public void testIsNotEnabled() throws Exception {
-        Cache cache2 = cacheManager.createCache(this.getClass().getSimpleName() + "-noStats", new MutableConfiguration<>());
-        cache = (SCache<Long, String>) cache2.unwrap(SCache.class);
-        AssertionsForClassTypes.assertThat(cache.getConfiguration(MutableConfiguration.class).isStatisticsEnabled()).isFalse();
-        AssertionsForClassTypes.assertThat(cache.getStatistics()).isNull();
-    }
+	@Test
+	public void testIsNotEnabled() throws Exception {
+		Cache cache2 = cacheManager.createCache(this.getClass().getSimpleName() + "-noStats", new MutableConfiguration<>());
+		cache = (SCache<Long, String>) cache2.unwrap(SCache.class);
+		AssertionsForClassTypes.assertThat(cache.getConfiguration(MutableConfiguration.class).isStatisticsEnabled()).isFalse();
+		AssertionsForClassTypes.assertThat(cache.getStatistics()).isNull();
+	}
 
-    @Test
-    public void testGetStat() throws Exception {
-        assertThat(statistics.getCacheGets()).isEqualTo(0L);
-        cache.get(0L);
-        assertThat(statistics.getCacheGets()).isEqualTo(1L);
-        cache.getAndPut(0L, "foo");
-        assertThat(statistics.getCacheGets()).isEqualTo(2L);
-        cache.getAndReplace(0L, "bar");
-        assertThat(statistics.getCacheGets()).isEqualTo(3L);
-        cache.getAndRemove(0L);
-        assertThat(statistics.getCacheGets()).isEqualTo(4L);
-    }
+	@Test
+	public void testGetStat() throws Exception {
+		assertThat(statistics.getCacheGets()).isEqualTo(0L);
+		cache.get(0L);
+		assertThat(statistics.getCacheGets()).isEqualTo(1L);
+		cache.getAndPut(0L, "foo");
+		assertThat(statistics.getCacheGets()).isEqualTo(2L);
+		cache.getAndReplace(0L, "bar");
+		assertThat(statistics.getCacheGets()).isEqualTo(3L);
+		cache.getAndRemove(0L);
+		assertThat(statistics.getCacheGets()).isEqualTo(4L);
+	}
 
-    @Test
-    public void testPutStat() throws Exception {
-        assertThat(statistics.getCachePuts()).isEqualTo(0L);
-        cache.put(0L, "foo");
-        assertThat(statistics.getCachePuts()).isEqualTo(1L);
-        cache.getAndPut(0L, "bar");
-        assertThat(statistics.getCachePuts()).isEqualTo(2L);
-        cache.putIfAbsent(1L, "baz");
-        assertThat(statistics.getCachePuts()).isEqualTo(3L);
-    }
+	@Test
+	public void testPutStat() throws Exception {
+		assertThat(statistics.getCachePuts()).isEqualTo(0L);
+		cache.put(0L, "foo");
+		assertThat(statistics.getCachePuts()).isEqualTo(1L);
+		cache.getAndPut(0L, "bar");
+		assertThat(statistics.getCachePuts()).isEqualTo(2L);
+		cache.putIfAbsent(1L, "baz");
+		assertThat(statistics.getCachePuts()).isEqualTo(3L);
+	}
 
-    @Test
-    public void testRemoveStats() throws Exception {
-        assertThat(statistics.getCacheRemovals()).isEqualTo(0L);
-        cache.remove(0L);
-        assertThat(statistics.getCacheRemovals()).isEqualTo(0L);
-        cache.put(0L, "foo");
-        cache.remove(0L);
-        assertThat(statistics.getCacheRemovals()).isEqualTo(1L);
-        cache.put(0L, "foo");
-        cache.remove(0L, "foo");
-        assertThat(statistics.getCacheRemovals()).isEqualTo(2L);
-        cache.getAndRemove(0L);
-        assertThat(statistics.getCacheRemovals()).isEqualTo(2L);
-        cache.put(0L, "foo");
-        cache.getAndRemove(0L);
-        assertThat(statistics.getCacheRemovals()).isEqualTo(3L);
-    }
+	@Test
+	public void testRemoveStats() throws Exception {
+		assertThat(statistics.getCacheRemovals()).isEqualTo(0L);
+		cache.remove(0L);
+		assertThat(statistics.getCacheRemovals()).isEqualTo(0L);
+		cache.put(0L, "foo");
+		cache.remove(0L);
+		assertThat(statistics.getCacheRemovals()).isEqualTo(1L);
+		cache.put(0L, "foo");
+		cache.remove(0L, "foo");
+		assertThat(statistics.getCacheRemovals()).isEqualTo(2L);
+		cache.getAndRemove(0L);
+		assertThat(statistics.getCacheRemovals()).isEqualTo(2L);
+		cache.put(0L, "foo");
+		cache.getAndRemove(0L);
+		assertThat(statistics.getCacheRemovals()).isEqualTo(3L);
+	}
 
-    @Test
-    public void testHit() throws Exception {
-        assertThat(statistics.getCacheHits()).isEqualTo(0L);
-        cache.put(0L, "foo");
-        cache.get(0L);
-        assertThat(statistics.getCacheHits()).isEqualTo(1L);
-    }
+	@Test
+	public void testHit() throws Exception {
+		assertThat(statistics.getCacheHits()).isEqualTo(0L);
+		cache.put(0L, "foo");
+		cache.get(0L);
+		assertThat(statistics.getCacheHits()).isEqualTo(1L);
+	}
 
-    @Test
-    public void testMiss() throws Exception {
-        assertThat(statistics.getCacheMisses()).isEqualTo(0L);
-        cache.get(0L);
-        assertThat(statistics.getCacheMisses()).isEqualTo(1L);
-    }
+	@Test
+	public void testMiss() throws Exception {
+		assertThat(statistics.getCacheMisses()).isEqualTo(0L);
+		cache.get(0L);
+		assertThat(statistics.getCacheMisses()).isEqualTo(1L);
+	}
 
-    @Test
-    public void testEviction() throws Exception {
-        final AtomicLong clock = new AtomicLong(0L);
-        cache.setClock(clock::get);
-        cache.put(0L, "foo");
-        cache.get(0L);
-        assertThat(statistics.getCacheEvictions()).isEqualTo(0L);
-        clock.set(TimeUnit.MINUTES.toNanos(2));
-        cache.get(0L);
-        assertThat(statistics.getCacheEvictions()).isEqualTo(1L);
-    }
+	@Test
+	public void testEviction() throws Exception {
+		final AtomicLong clock = new AtomicLong(0L);
+		cache.setClock(clock::get);
+		cache.put(0L, "foo");
+		cache.get(0L);
+		assertThat(statistics.getCacheEvictions()).isEqualTo(0L);
+		clock.set(TimeUnit.MINUTES.toNanos(2));
+		cache.get(0L);
+		assertThat(statistics.getCacheEvictions()).isEqualTo(1L);
+	}
 
-    @Test
-    public void testReadThrough() throws Exception {
-        assertThat(statistics.getReadThrough()).isEqualTo(0L);
-        cache.get(0L);
-        assertThat(statistics.getReadThrough()).isEqualTo(1L);
-    }
+	@Test
+	public void testReadThrough() throws Exception {
+		assertThat(statistics.getReadThrough()).isEqualTo(0L);
+		cache.get(0L);
+		assertThat(statistics.getReadThrough()).isEqualTo(1L);
+	}
 
-    @Test
-    public void testWriteThrough() throws Exception {
-        assertThat(statistics.getWriteThrough()).isEqualTo(0L);
-        cache.put(0L, "foo");
-        assertThat(statistics.getWriteThrough()).isEqualTo(1L);
-    }
+	@Test
+	public void testWriteThrough() throws Exception {
+		assertThat(statistics.getWriteThrough()).isEqualTo(0L);
+		cache.put(0L, "foo");
+		assertThat(statistics.getWriteThrough()).isEqualTo(1L);
+	}
 
-    @Test
-    public void testRemoveThrough() throws Exception {
-        cache.put(0L, "foo");
-        assertThat(statistics.getRemoveThrough()).isEqualTo(0L);
-        cache.remove(0L);
-        assertThat(statistics.getRemoveThrough()).isEqualTo(1L);
-    }
+	@Test
+	public void testRemoveThrough() throws Exception {
+		cache.put(0L, "foo");
+		assertThat(statistics.getRemoveThrough()).isEqualTo(0L);
+		cache.remove(0L);
+		assertThat(statistics.getRemoveThrough()).isEqualTo(1L);
+	}
 }
