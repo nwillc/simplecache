@@ -27,7 +27,7 @@ import java.util.Map;
  */
 public class SEntry<K, V> implements Cache.Entry<K, V> {
     private final K key;
-    protected V value;
+    private final V value;
 
     public SEntry(K key, V value) {
         this.key = key;

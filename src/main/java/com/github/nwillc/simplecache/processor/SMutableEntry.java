@@ -46,7 +46,6 @@ public class SMutableEntry<K, V> extends SEntry<K, V> implements MutableEntry<K,
 
     @Override
     public void setValue(V value) {
-        this.value = value;
         cache.put(getKey(), value);
     }
 }
