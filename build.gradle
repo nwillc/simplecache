@@ -50,7 +50,7 @@ repositories {
 
 dependencies {
     compile 'org.slf4j:slf4j-api:1.7.13',
-            'javax.cache:cache-api:1.0.1'
+            'javax.cache:cache-api:1.0.0'
 
     testCompile 'junit:junit:4.12',
             'org.assertj:assertj-core:3.2.0',
@@ -58,7 +58,7 @@ dependencies {
 }
 
 group = "com.github.nwillc"
-version = "1.0.0"
+version = "1.0.1"
 targetCompatibility = "1.8"
 sourceCompatibility = "1.8"
 
