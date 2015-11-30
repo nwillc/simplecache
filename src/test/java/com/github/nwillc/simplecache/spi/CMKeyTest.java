@@ -1,0 +1,50 @@
+/*
+ * Copyright (c) 2015, nwillc@gmail.com
+ *
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted, provided that the above
+ * copyright notice and this permission notice appear in all copies.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+ * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+ * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+ * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ */
+
+package com.github.nwillc.simplecache.spi;
+
+import com.github.nwillc.contracts.EqualsContract;
+import org.junit.Before;
+
+import java.net.URI;
+import java.util.Properties;
+
+public class CMKeyTest extends EqualsContract<SCachingProvider.CMKey> {
+	private URI uri1, uri2;
+	private ClassLoader classLoader = CMKeyTest.class.getClassLoader();
+	private Properties properties = new Properties();
+
+	@Before
+	public void setUp() throws Exception {
+		uri1 = new URI("foo");
+		uri2 = new URI("bar");
+	}
+
+	@Override
+	protected SCachingProvider.CMKey getEqualsInstance() {
+		return new SCachingProvider.CMKey(classLoader, uri1, properties);
+	}
+
+	@Override
+	protected SCachingProvider.CMKey getInstance() {
+		return new SCachingProvider.CMKey(classLoader, uri1, properties);
+	}
+
+	@Override
+	protected SCachingProvider.CMKey getNotEqualInstance() {
+		return new SCachingProvider.CMKey(classLoader, uri2, properties);
+	}
+}

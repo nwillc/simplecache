@@ -44,22 +44,6 @@ public class SCacheListenerDispatcherTest {
 		assertThat(list).hasSize(SIZE);
 	}
 
-	@SuppressWarnings("unchecked")
-	@Test
-	public void testListenerEquals() throws Exception {
-		CacheEntryListenerConfiguration conf1 = mock(CacheEntryListenerConfiguration.class);
-		CacheEntryListenerConfiguration conf2 = mock(CacheEntryListenerConfiguration.class);
-		SCacheListenerDispatcher.Listener listener1 = new SCacheListenerDispatcher.Listener<>(conf1);
-		SCacheListenerDispatcher.Listener listener2 = new SCacheListenerDispatcher.Listener<>(conf2);
-		SCacheListenerDispatcher.Listener listener3 = new SCacheListenerDispatcher.Listener<>(conf1);
-
-		assertThat(listener1).isEqualTo(listener1);
-		assertThat(listener1).isEqualTo(listener3);
-		assertThat(listener1).isNotEqualTo(listener2);
-		assertThat(listener1).isNotEqualTo(null);
-		assertThat(listener1).isNotEqualTo("foo");
-	}
-
 	@Test
 	public void testToConsumerNullType() throws Exception {
 		assertThatThrownBy(() -> SCacheListenerDispatcher.toConsumer(null, null)).isInstanceOf(NullPointerException.class);
