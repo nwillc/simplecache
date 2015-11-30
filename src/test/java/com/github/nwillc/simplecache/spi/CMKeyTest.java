@@ -20,7 +20,11 @@ import com.github.nwillc.contracts.EqualsContract;
 import org.junit.Before;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
+
+import static org.mockito.Mockito.mock;
 
 public class CMKeyTest extends EqualsContract<SCachingProvider.CMKey> {
 	private URI uri1, uri2;
@@ -33,18 +37,30 @@ public class CMKeyTest extends EqualsContract<SCachingProvider.CMKey> {
 		uri2 = new URI("bar");
 	}
 
-	@Override
-	protected SCachingProvider.CMKey getEqualsInstance() {
-		return new SCachingProvider.CMKey(classLoader, uri1, properties);
-	}
+    @Override
+    protected List<SCachingProvider.CMKey> getEquals() {
+        List<SCachingProvider.CMKey> instances = new ArrayList<>();
+        instances.add(new SCachingProvider.CMKey(classLoader, uri1, properties));
+        instances.add(new SCachingProvider.CMKey(classLoader, uri1, properties));
+        return instances;
+    }
 
-	@Override
-	protected SCachingProvider.CMKey getInstance() {
-		return new SCachingProvider.CMKey(classLoader, uri1, properties);
-	}
+    @Override
+    protected List<SCachingProvider.CMKey> getNotEquals() {
+        List<SCachingProvider.CMKey> instances = new ArrayList<>();
+        instances.add(new SCachingProvider.CMKey(classLoader, uri1, properties));
+        instances.add(new SCachingProvider.CMKey(mock(ClassLoader.class), uri1, properties));
+        instances.add(new SCachingProvider.CMKey(classLoader, uri2, properties));
+        Properties properties1 = new Properties();
+        properties1.put("foo", "bar");
+        instances.add(new SCachingProvider.CMKey(classLoader, uri1, properties1));
+        instances.add(new SubCMKey(classLoader, uri1, properties));
+        return instances;
+    }
 
-	@Override
-	protected SCachingProvider.CMKey getNotEqualInstance() {
-		return new SCachingProvider.CMKey(classLoader, uri2, properties);
-	}
+    class SubCMKey extends SCachingProvider.CMKey {
+        public SubCMKey(ClassLoader classLoader, URI uri, Properties properties) {
+            super(classLoader, uri, properties);
+        }
+    }
 }

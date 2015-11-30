@@ -38,12 +38,7 @@ public class SCachingProviderTest {
 		assertThat(cachingProvider).isNotNull();
 	}
 
-	@Test
-	public void testGetCacheManager() throws Exception {
-		CacheManager cacheManager = cachingProvider.getCacheManager(null, null, null);
-		assertThat(cacheManager).isNotNull();
-		assertThat(cacheManager).isInstanceOf(SCacheManager.class);
-	}
+
 
 	@Test
 	public void testGetDefaultClassLoader() throws Exception {
@@ -62,19 +57,33 @@ public class SCachingProviderTest {
 		assertThat(properties).isNotNull();
 	}
 
+    @Test
+    public void testGetCacheManager1() throws Exception {
+        CacheManager cacheManager = cachingProvider.getCacheManager(null, null, null);
+        assertThat(cacheManager).isNotNull();
+        assertThat(cacheManager).isInstanceOf(SCacheManager.class);
+    }
+
 	@Test
-	public void testGetCacheManager1() throws Exception {
+	public void testGetCacheManager2() throws Exception {
 		CacheManager cacheManager = cachingProvider.getCacheManager(null, null);
 		assertThat(cacheManager).isNotNull();
 		assertThat(cacheManager).isInstanceOf(SCacheManager.class);
 	}
 
 	@Test
-	public void testGetCacheManager2() throws Exception {
+	public void testGetCacheManager3() throws Exception {
 		CacheManager cacheManager = cachingProvider.getCacheManager();
 		assertThat(cacheManager).isNotNull();
 		assertThat(cacheManager).isInstanceOf(SCacheManager.class);
 	}
+
+    @Test
+    public void testGetCacheManager4() throws Exception {
+        CacheManager cacheManager = cachingProvider.getCacheManager(new URI("foo"), getClass().getClassLoader(), null);
+        assertThat(cacheManager).isNotNull();
+        assertThat(cacheManager).isInstanceOf(SCacheManager.class);
+    }
 
 	@Test
 	public void testGetCacheManagerNeverReturnClosed() throws Exception {

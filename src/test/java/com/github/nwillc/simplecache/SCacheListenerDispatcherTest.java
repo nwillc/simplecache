@@ -18,7 +18,6 @@ package com.github.nwillc.simplecache;
 
 import org.junit.Test;
 
-import javax.cache.configuration.CacheEntryListenerConfiguration;
 import javax.cache.event.CacheEntryListener;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -26,7 +25,6 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
 
 public class SCacheListenerDispatcherTest {
 

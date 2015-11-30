@@ -21,6 +21,9 @@ import org.junit.Before;
 
 import javax.cache.configuration.CacheEntryListenerConfiguration;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.mockito.Mockito.mock;
 
 @SuppressWarnings("unchecked")
@@ -34,18 +37,26 @@ public class ListenerTest extends EqualsContract<SCacheListenerDispatcher.Listen
 		configuration2 = mock(CacheEntryListenerConfiguration.class);
 	}
 
-	@Override
-	protected SCacheListenerDispatcher.Listener getEqualsInstance() {
-		return new SCacheListenerDispatcher.Listener(configuration1);
-	}
+    @Override
+    protected List<SCacheListenerDispatcher.Listener> getEquals() {
+        List<SCacheListenerDispatcher.Listener> instances = new ArrayList<>();
+        instances.add(new SCacheListenerDispatcher.Listener(configuration1));
+        instances.add(new SCacheListenerDispatcher.Listener(configuration1));
+        return instances;
+    }
 
-	@Override
-	protected SCacheListenerDispatcher.Listener getInstance() {
-		return new SCacheListenerDispatcher.Listener(configuration1);
-	}
+    @Override
+    protected List<SCacheListenerDispatcher.Listener> getNotEquals() {
+        List<SCacheListenerDispatcher.Listener> instances = new ArrayList<>();
+        instances.add(new SCacheListenerDispatcher.Listener(configuration1));
+        instances.add(new SCacheListenerDispatcher.Listener(configuration2));
+        instances.add(new SubListener(configuration1));
+        return instances;
+    }
 
-	@Override
-	protected SCacheListenerDispatcher.Listener getNotEqualInstance() {
-		return new SCacheListenerDispatcher.Listener(configuration2);
-	}
+    private class SubListener extends SCacheListenerDispatcher.Listener {
+        public SubListener(CacheEntryListenerConfiguration configuration) {
+            super(configuration);
+        }
+    }
 }
