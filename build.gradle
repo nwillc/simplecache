@@ -44,6 +44,9 @@ apply plugin: "maven"
 
 repositories {
     mavenLocal()
+    maven {
+        url  "http://dl.bintray.com/nwillc/maven"
+    }
     jcenter {
         url 'http://jcenter.bintray.com'
     }
