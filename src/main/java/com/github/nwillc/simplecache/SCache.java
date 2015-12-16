@@ -21,6 +21,7 @@ import com.github.nwillc.simplecache.managment.SCacheStatisticsMXBean;
 import com.github.nwillc.simplecache.processor.SMutableEntry;
 
 import javax.cache.Cache;
+import javax.cache.CacheException;
 import javax.cache.CacheManager;
 import javax.cache.configuration.CacheEntryListenerConfiguration;
 import javax.cache.configuration.Configuration;
@@ -43,6 +44,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
+
+import static com.github.nwillc.simplecache.SObjectCloner.deepCopy;
 
 public final class SCache<K, V> implements Cache<K, V>, SListenerList<K, V> {
 	private final ConcurrentMap<K, SExpiryData> expiry = new ConcurrentHashMap<>();
@@ -138,6 +141,14 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K, V> {
 		exceptionIfClosed();
 		statistics.ifPresent(SCacheStatisticsMXBean::get);
 		statistics.ifPresent(SCacheStatisticsMXBean::put);
+        if (configuration.isStoreByValue()) {
+            try {
+                key = deepCopy(key);
+                value = deepCopy(value);
+            } catch (Exception e) {
+                throw new CacheException("Unable to copy key/value.", e);
+            }
+        }
 		expiryCheck(key);
 		V old = data.put(key, value);
 		eventListenerDispatcher.event(old == null ? EventType.CREATED : EventType.UPDATED, key, value, old);
@@ -154,6 +165,14 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K, V> {
 	@Override
 	public boolean putIfAbsent(K key, V value) {
 		exceptionIfClosed();
+        if (configuration.isStoreByValue()) {
+            try {
+                key = deepCopy(key);
+                value = deepCopy(value);
+            } catch (Exception e) {
+                throw new CacheException("Unable to copy key/value.", e);
+            }
+        }
 		boolean wasPut = data.putIfAbsent(key, value) == null;
 		if (wasPut) {
 			statistics.ifPresent(SCacheStatisticsMXBean::put);
@@ -198,6 +217,14 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K, V> {
 	@Override
 	public boolean replace(K key, V oldValue, V newValue) {
 		exceptionIfClosed();
+        if (configuration.isStoreByValue()) {
+            try {
+                key = deepCopy(key);
+                newValue = deepCopy(newValue);
+            } catch (Exception e) {
+                throw new CacheException("Unable to copy key/value.", e);
+            }
+        }
 		boolean wasPut = data.replace(key, oldValue, newValue);
 		if (wasPut) {
 			writeThrough(key, newValue);
@@ -209,6 +236,14 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K, V> {
 	@Override
 	public boolean replace(K key, V value) {
 		exceptionIfClosed();
+        if (configuration.isStoreByValue()) {
+            try {
+                key = deepCopy(key);
+                value = deepCopy(value);
+            } catch (Exception e) {
+                throw new CacheException("Unable to copy key/value.", e);
+            }
+        }
 		boolean wasPut = data.replace(key, value) != null;
 		if (wasPut) {
 			writeThrough(key, value);
@@ -225,6 +260,14 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K, V> {
 			statistics.ifPresent(SCacheStatisticsMXBean::get);
 			return v.update();
 		});
+        if (configuration.isStoreByValue()) {
+            try {
+                key = deepCopy(key);
+                value = deepCopy(value);
+            } catch (Exception e) {
+                throw new CacheException("Unable to copy key/value.", e);
+            }
+        }
 		return data.replace(key, value);
 	}
 
@@ -336,6 +379,14 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K, V> {
 		statistics.ifPresent(SCacheStatisticsMXBean::readThrough);
 		V value = loader.get().load(key);
 		if (value != null) {
+            if (configuration.isStoreByValue()) {
+                try {
+                    key = deepCopy(key);
+                    value = deepCopy(value);
+                } catch (Exception e) {
+                    throw new CacheException("Unable to copy key/value.", e);
+                }
+            }
 			data.put(key, value);
 		}
 

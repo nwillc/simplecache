@@ -27,15 +27,13 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'gradle.plugin.com.github.nwillc:vplugin:1.2.4',
-                'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.4',
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.4',
                 'au.com.ish.gradle:release:2.2.2',
                 'org.tmatesoft.sqljet:sqljet:1.1.9'
     }
 }
 
 apply plugin: 'release'
-apply plugin: 'com.github.nwillc.vplugin'
 apply plugin: 'java'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
@@ -63,7 +61,7 @@ dependencies {
 }
 
 group = 'com.github.nwillc'
-version = '1.0.1'
+version = '1.0.2'
 targetCompatibility = '1.8'
 sourceCompatibility = '1.8'
 

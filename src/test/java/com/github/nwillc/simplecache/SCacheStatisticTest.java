@@ -51,6 +51,7 @@ public class SCacheStatisticTest {
 		CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
 		cacheManager = cachingProvider.getCacheManager();
 		MutableConfiguration configuration = new MutableConfiguration<>();
+        configuration.setStoreByValue(false);
 		configuration.setStatisticsEnabled(true);
 		configuration.setExpiryPolicyFactory(() -> new CreatedExpiryPolicy(new Duration(TimeUnit.MINUTES, 1)));
 		configuration.setReadThrough(true);

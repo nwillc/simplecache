@@ -49,6 +49,7 @@ public class SCacheWriteThroughTest {
 		CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
 		cacheManager = cachingProvider.getCacheManager();
 		MutableConfiguration<Long, String> configuration = new MutableConfiguration<>();
+        configuration.setStoreByValue(false);
 		configuration.setWriteThrough(true);
 		configuration.setCacheWriterFactory(factory);
 		cache = cacheManager.createCache(NAME, configuration);

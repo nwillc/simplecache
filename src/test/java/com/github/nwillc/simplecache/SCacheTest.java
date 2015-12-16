@@ -61,7 +61,8 @@ public class SCacheTest {
 	public void setUp() throws Exception {
 		CachingProvider cachingProvider = Caching.getCachingProvider(SCachingProvider.class.getCanonicalName());
 		cacheManager = cachingProvider.getCacheManager();
-		cache = cacheManager.createCache(NAME, new MutableConfiguration<>());
+        MutableConfiguration<Long, String> mutableConfiguration = new MutableConfiguration();
+		cache = cacheManager.createCache(NAME, mutableConfiguration);
 	}
 
 	@Test
