@@ -30,7 +30,7 @@ public class SObjectClonerTest extends UtilityClassContract {
 	@Test
 	public void shouldDeepCopy() throws Exception {
 		String foo = "This is a test";
-		String bar = (String) SObjectCloner.deepCopy(foo);
+		String bar = SObjectCloner.deepCopy(foo);
 
 		assertThat(foo).isEqualTo(bar);
 	}

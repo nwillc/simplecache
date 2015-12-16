@@ -25,14 +25,15 @@ import java.io.ObjectOutputStream;
 public final class SObjectCloner {
 	private SObjectCloner() {}
 
-	public static Object deepCopy(Object obj) throws IOException, ClassNotFoundException {
+	@SuppressWarnings("unchecked")
+	public static <T> T deepCopy(T obj) throws IOException, ClassNotFoundException {
 		try (ByteArrayOutputStream bos = new ByteArrayOutputStream();
 			 ObjectOutputStream oos = new ObjectOutputStream(bos)) {
 			oos.writeObject(obj);
 			oos.flush();
 			try (ByteArrayInputStream bin = new ByteArrayInputStream(bos.toByteArray());
 				 ObjectInputStream ois = new ObjectInputStream(bin)) {
-				return ois.readObject();
+				return (T)ois.readObject();
 			}
 		}
 	}
