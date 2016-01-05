@@ -61,7 +61,7 @@ dependencies {
 }
 
 group = 'com.github.nwillc'
-version = '1.0.2'
+version = '1.0.3'
 targetCompatibility = '1.8'
 sourceCompatibility = '1.8'
 
@@ -121,12 +121,12 @@ bintray {
     pkg {
         repo = 'maven'
         name = project.name
-        desc = 'JSR 107 inspired simple caching'
+        desc = 'JSR 107 simple implementation'
         websiteUrl = 'https://github.com/nwillc/simplecache'
         issueTrackerUrl = 'https://github.com/nwillc/simplecache/issues'
         vcsUrl = 'https://github.com/nwillc/simplecache.git'
         licenses = ['ISC']
-        labels = ['simplecache']
+        labels = ['simplecache', 'jsr-107']
         publicDownloadNumbers = true
     }
 }
