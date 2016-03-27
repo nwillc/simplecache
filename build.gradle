@@ -28,6 +28,7 @@ buildscript {
     }
     dependencies {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.4',
+                'gradle.plugin.com.github.nwillc:vplugin:1.2.5',
                 'au.com.ish.gradle:release:2.2.2',
                 'org.tmatesoft.sqljet:sqljet:1.1.9'
     }
@@ -39,6 +40,7 @@ apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
 apply plugin: 'jacoco'
 apply plugin: 'maven'
+apply plugin: "com.github.nwillc.vplugin"
 
 repositories {
     mavenLocal()
@@ -51,17 +53,17 @@ repositories {
 }
 
 dependencies {
-    compile 'org.slf4j:slf4j-api:1.7.13',
+    compile 'org.slf4j:slf4j-api:1.7.19',
             'javax.cache:cache-api:1.0.0'
 
     testCompile 'junit:junit:4.12',
             'com.github.nwillc:contracts:1.7.1',
-            'org.assertj:assertj-core:3.2.0',
-            'org.mockito:mockito-core:2.0.31-beta'
+            'org.assertj:assertj-core:3.3.0',
+            'org.mockito:mockito-core:2.0.44-beta'
 }
 
 group = 'com.github.nwillc'
-version = '1.0.3'
+version = '1.0.4-SNAPSHOT'
 targetCompatibility = '1.8'
 sourceCompatibility = '1.8'
 
