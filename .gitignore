@@ -1,6 +1,6 @@
 build
 .idea
 *.iml
-env.sh
 .gradle
-.ruby-version
+gradle
+.java-version
