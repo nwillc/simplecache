@@ -1,30 +1,14 @@
 /*
- * Copyright (c) 2015, nwillc@gmail.com
+ * Copyright 2019 nwillc@gmail.com
  *
- * Permission to use, copy, modify, and/or distribute this software for any
- * purpose with or without fee is hereby granted, provided that the above
- * copyright notice and this permission notice appear in all copies.
+ * Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
  *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
- * WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
- * ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
- * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
- * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
- * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
 buildscript {
     repositories {
-        jcenter {
-            url 'http://jcenter.bintray.com'
-        }
-//        maven {
-//            url 'https://plugins.gradle.org/m2/'
-//        }
-//        maven {
-//            url 'http://maven.tmatesoft.com/content/repositories/releases/'
-//        }
+        jcenter()
     }
     dependencies {
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4',
@@ -34,35 +18,30 @@ buildscript {
 }
 
 plugins {
+    id 'java'
+    id 'jacoco'
     id "com.github.nwillc.vplugin" version "2.3.0"
 }
 
 apply plugin: 'release'
-apply plugin: 'java'
 apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
-apply plugin: 'jacoco'
 apply plugin: 'maven'
 
 
 repositories {
     mavenLocal()
-//    maven {
-//        url  'http://dl.bintray.com/nwillc/maven'
-//    }
-    jcenter {
-        url 'http://jcenter.bintray.com'
-    }
+    jcenter()
 }
 
 dependencies {
-    compile 'org.slf4j:slf4j-api:1.7.19',
+    compile 'org.slf4j:slf4j-api:1.7.25',
             'javax.cache:cache-api:1.0.0'
 
     testCompile 'junit:junit:4.12',
-            'com.github.nwillc:contracts:1.7.1',
-            'org.assertj:assertj-core:3.3.0',
-            'org.mockito:mockito-core:2.0.44-beta'
+            'com.github.nwillc:jdk_contract_tests:1.9.2',
+            'org.assertj:assertj-core:3.11.1',
+            'org.mockito:mockito-core:2.24.0'
 }
 
 group = 'com.github.nwillc'
