@@ -19,19 +19,22 @@ buildscript {
         jcenter {
             url 'http://jcenter.bintray.com'
         }
-        maven {
-            url 'https://plugins.gradle.org/m2/'
-        }
-        maven {
-            url 'http://maven.tmatesoft.com/content/repositories/releases/'
-        }
+//        maven {
+//            url 'https://plugins.gradle.org/m2/'
+//        }
+//        maven {
+//            url 'http://maven.tmatesoft.com/content/repositories/releases/'
+//        }
     }
     dependencies {
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.4',
-                'gradle.plugin.com.github.nwillc:vplugin:1.2.5',
+        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4',
                 'au.com.ish.gradle:release:2.2.2',
-                'org.tmatesoft.sqljet:sqljet:1.1.9'
+                'org.tmatesoft.sqljet:sqljet:1.1.12'
     }
+}
+
+plugins {
+    id "com.github.nwillc.vplugin" version "2.3.0"
 }
 
 apply plugin: 'release'
@@ -40,13 +43,13 @@ apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
 apply plugin: 'jacoco'
 apply plugin: 'maven'
-apply plugin: "com.github.nwillc.vplugin"
+
 
 repositories {
     mavenLocal()
-    maven {
-        url  'http://dl.bintray.com/nwillc/maven'
-    }
+//    maven {
+//        url  'http://dl.bintray.com/nwillc/maven'
+//    }
     jcenter {
         url 'http://jcenter.bintray.com'
     }
