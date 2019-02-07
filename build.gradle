@@ -1,33 +1,26 @@
 /*
  * Copyright 2019 nwillc@gmail.com
  *
- * Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee is hereby granted, provided that the above copyright notice and this permission notice appear in all copies.
+ * Permission to use, copy, modify, and/or distribute this software for any purpose with or without
+ * fee is hereby granted, provided that the above copyright notice and this permission notice appear
+ * in all copies.
  *
- * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS
+ * SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL
+ * THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ * WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT,
+ * NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE
+ * OF THIS SOFTWARE.
  */
-
-buildscript {
-    repositories {
-        jcenter()
-    }
-    dependencies {
-        classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.4',
-                'au.com.ish.gradle:release:2.2.2',
-                'org.tmatesoft.sqljet:sqljet:1.1.12'
-    }
-}
 
 plugins {
     id 'java'
     id 'jacoco'
+    id 'maven-publish'
+    id 'maven'
     id "com.github.nwillc.vplugin" version "2.3.0"
+    id "com.jfrog.bintray" version "1.8.4"
 }
-
-apply plugin: 'release'
-apply plugin: 'com.jfrog.bintray'
-apply plugin: 'maven-publish'
-apply plugin: 'maven'
-
 
 repositories {
     mavenLocal()
@@ -45,9 +38,9 @@ dependencies {
 }
 
 group = 'com.github.nwillc'
-version = '1.0.4-SNAPSHOT'
-targetCompatibility = '1.8'
-sourceCompatibility = '1.8'
+version = '1.1.0'
+targetCompatibility = JavaVersion.VERSION_1_8.toString()
+sourceCompatibility = JavaVersion.VERSION_1_8.toString()
 
 test {
     beforeTest { descriptor ->
@@ -86,14 +79,6 @@ publishing {
         }
     }
 }
-
-release {
-    failOnSnapshotDependencies = true
-    allowLocalModifications = true
-    releaseDryRun = false
-    scm = 'git'
-}
-
 
 bintray {
     user = System.getenv('BINTRAY_USER')
