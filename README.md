@@ -16,13 +16,7 @@ More back story about this code is found [in this blog post.](https://nwillc.wor
 
 
 -----
-[![ISC License](http://shields-nwillc.rhcloud.com/shield/tldrlegal?package=ISC)](http://shields-nwillc.rhcloud.com/homepage/tldrlegal?package=ISC)
-[![Build Status](http://shields-nwillc.rhcloud.com/shield/travis-ci?path=nwillc&package=simplecache)](http://shields-nwillc.rhcloud.com/homepage/travis-ci?path=nwillc&package=simplecache)
-[![Download](http://shields-nwillc.rhcloud.com/shield/jcenter?path=nwillc&package=simplecache)](http://shields-nwillc.rhcloud.com/homepage/jcenter?group=com.github.nwillc&package=simplecache&path=nwillc/maven/simplecache)
-[![Coverage Status](http://shields-nwillc.rhcloud.com/shield/codecov?path=github/nwillc&package=simplecache)](http://shields-nwillc.rhcloud.com/homepage/codecov?path=github/nwillc&package=simplecache)
-
-
-
-
-
-
+[![Coverage](https://codecov.io/gh/nwillc/simplecache/branch/master/graphs/badge.svg?branch=master)](https://codecov.io/gh/nwillc/simplecache)
+[![license](https://img.shields.io/github/license/nwillc/simplecache.svg)](https://tldrlegal.com/license/-isc-license)
+[![Travis](https://img.shields.io/travis/nwillc/simplecache.svg)](https://travis-ci.org/nwillc/simplecache)
+[![Download](https://api.bintray.com/packages/nwillc/maven/simplecache/images/download.svg)](https://bintray.com/nwillc/maven/simplecache/_latestVersion)
