@@ -27,10 +27,10 @@ repositories {
 }
 
 dependencies {
-    compile 'org.slf4j:slf4j-api:1.7.25',
-            'javax.cache:cache-api:1.0.0'
+    implementation 'org.slf4j:slf4j-api:1.7.25',
+            'javax.cache:cache-api:1.1.0'
 
-    testCompile 'junit:junit:4.12',
+    testImplementation 'junit:junit:4.12',
             'com.github.nwillc:jdk_contract_tests:1.9.2',
             'org.assertj:assertj-core:3.11.1',
             'org.mockito:mockito-core:2.24.0'
@@ -43,14 +43,12 @@ sourceCompatibility = JavaVersion.VERSION_1_8.toString()
 
 test {
     beforeTest { descriptor ->
-        logger.lifecycle('\tRunning ' + descriptor.className + '.' + descriptor.name)
+        logger.lifecycle("\tRunning ${descriptor.className}.${descriptor.name}")
     }
 
     afterSuite { descriptor, result ->
         if (descriptor.parent == null) {
-            logger.lifecycle('\tTests run: ' + result.testCount
-                    + ', Failures: ' + result.failedTestCount
-                    + ', Skipped: ' + result.skippedTestCount)
+            logger.lifecycle("\tTests run: ${result.testCount}, Failures: ${result.failedTestCount}, Skipped: ${result.skippedTestCount}")
         }
     }
 
@@ -92,11 +90,11 @@ bintray {
         repo = 'maven'
         name = project.name
         desc = 'JSR 107 simple implementation'
-        websiteUrl = 'https://github.com/nwillc/simplecache'
-        issueTrackerUrl = 'https://github.com/nwillc/simplecache/issues'
-        vcsUrl = 'https://github.com/nwillc/simplecache.git'
+        websiteUrl = "https://github.com/nwillc/${project.name}"
+        issueTrackerUrl = "https://github.com/nwillc/${project.name}/issues"
+        vcsUrl = "https://github.com/nwillc/${project.name}.git"
         licenses = ['ISC']
-        labels = ['simplecache', 'jsr-107']
+        labels = [project.name, 'jsr-107']
         publicDownloadNumbers = true
     }
 }
