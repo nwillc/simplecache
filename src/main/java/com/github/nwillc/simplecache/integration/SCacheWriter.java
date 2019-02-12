@@ -36,7 +36,7 @@ public class SCacheWriter<K, V> implements CacheWriter<K, V> {
 
 	@Override
 	public void deleteAll(Collection<?> keys) throws CacheWriterException {
-		keys.stream().forEach(deleter);
+		keys.forEach(deleter);
 	}
 
 	@Override
@@ -46,7 +46,7 @@ public class SCacheWriter<K, V> implements CacheWriter<K, V> {
 
 	@Override
 	public void writeAll(Collection<Cache.Entry<? extends K, ? extends V>> entries) throws CacheWriterException {
-		entries.stream().forEach(writer);
+		entries.forEach(writer);
 	}
 
 }

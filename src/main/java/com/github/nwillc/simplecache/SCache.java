@@ -89,7 +89,7 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K, V> {
 	@Override
 	public Map<K, V> getAll(Set<? extends K> keys) {
 		Map<K, V> retMap = new HashMap<>();
-		keys.stream().forEach(k -> {
+		keys.forEach(k -> {
 			V value = get(k);
 			if (value != null) {
 				retMap.put(k, value);
@@ -151,7 +151,7 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K, V> {
 
 	@Override
 	public void putAll(Map<? extends K, ? extends V> map) {
-		map.entrySet().stream().forEach(e -> put(e.getKey(), e.getValue()));
+		map.forEach(this::put);
 	}
 
 	@Override
@@ -265,7 +265,7 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K, V> {
 
 	@Override
 	public void removeAll(Set<? extends K> keys) {
-		keys.stream().forEach(this::remove);
+		keys.forEach(this::remove);
 	}
 
 	@Override
@@ -300,7 +300,7 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K, V> {
 	public <T> Map<K, EntryProcessorResult<T>> invokeAll(Set<? extends K> keys, EntryProcessor<K, V, T> entryProcessor, Object... arguments) {
 		Map<K, EntryProcessorResult<T>> resultMap = new HashMap<>();
 		Cache<K, V> cache = this;
-		keys.stream().forEach(k -> {
+		keys.forEach(k -> {
 			V v = get(k);
 			if (v != null) {
 				resultMap.put(k, () -> entryProcessor.process(new SMutableEntry<>(cache, k), arguments));

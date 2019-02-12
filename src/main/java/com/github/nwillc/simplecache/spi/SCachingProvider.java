@@ -31,14 +31,14 @@ public class SCachingProvider implements CachingProvider {
 	public synchronized CacheManager getCacheManager(URI uri, ClassLoader classLoader, Properties properties) {
 		URI managerUri = uri == null ? getDefaultURI() : uri;
 		ClassLoader managerClassLoader = classLoader == null ? getDefaultClassLoader() : classLoader;
-		Properties managerProrperties = properties == null ? getDefaultProperties() : properties;
+		Properties managerProperties = properties == null ? getDefaultProperties() : properties;
 
-		CMKey key = new CMKey(managerClassLoader, managerUri, managerProrperties);
+		CMKey key = new CMKey(managerClassLoader, managerUri, managerProperties);
 		CacheManager cacheManager = cacheManagers.get(key);
 		if (cacheManager == null || cacheManager.isClosed()) {
 			try {
 				Class<?> cmClass = managerClassLoader.loadClass(SCacheManager.class.getCanonicalName());
-				cacheManager = (CacheManager) cmClass.getDeclaredConstructor(SCachingProvider.class, Properties.class).newInstance(this, managerProrperties);
+				cacheManager = (CacheManager) cmClass.getDeclaredConstructor(SCachingProvider.class, Properties.class).newInstance(this, managerProperties);
 			} catch (Exception e) {
 				throw new CacheException("ClassLoader can not load SCacheManager class.", e);
 			}

@@ -21,7 +21,7 @@ class SExpiryData {
 	private final Supplier<Long> timeSource;
 	private final ExpiryPolicy expiryPolicy;
 	private final Expired expired;
-	long created = NEVER;
+	final long created;
 	long accessed = NEVER;
 	long updated = NEVER;
 
