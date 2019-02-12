@@ -65,7 +65,7 @@ public final class SCache<K, V> implements Cache<K, V>, SListenerList<K, V> {
 		expiryDataFactory = (Factory<SExpiryData>) () ->
 				new SExpiryData(clock, (ExpiryPolicy) ((MutableConfiguration) configuration).getExpiryPolicyFactory().create());
 		statistics = ((MutableConfiguration) configuration).isStatisticsEnabled() ?
-				Optional.of(new SCacheStatisticsMXBean()) : Optional.<SCacheStatisticsMXBean>empty();
+				Optional.of(new SCacheStatisticsMXBean()) : Optional.empty();
 		eventListenerDispatcher = new SCacheListenerDispatcher<>(this);
 		closed.set(false);
 	}

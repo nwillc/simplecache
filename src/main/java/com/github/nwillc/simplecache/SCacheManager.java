@@ -97,7 +97,7 @@ public class SCacheManager implements CacheManager {
 	@Override
 	public void close() {
 		if (closed.compareAndSet(false, true)) {
-			cacheMap.values().stream().forEach(Cache::close);
+			cacheMap.values().forEach(Cache::close);
 			cacheMap.clear();
 		}
 	}
