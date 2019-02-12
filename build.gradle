@@ -17,7 +17,6 @@ plugins {
     id 'java'
     id 'jacoco'
     id 'maven-publish'
-    id 'maven'
     id "com.github.nwillc.vplugin" version "2.3.0"
     id "com.jfrog.bintray" version "1.8.4"
 }
@@ -38,7 +37,7 @@ dependencies {
 }
 
 group = 'com.github.nwillc'
-version = '1.1.0'
+version = '1.1.1-SNAPSHOT'
 targetCompatibility = JavaVersion.VERSION_1_8.toString()
 sourceCompatibility = JavaVersion.VERSION_1_8.toString()
 
@@ -75,10 +74,12 @@ publishing {
         mavenJava(MavenPublication) {
             from components.java
             artifact sourceJar
-            artifact javadocJar 
+            artifact javadocJar
         }
     }
 }
+
+bintrayUpload.onlyIf { !project.version.toString().endsWith('SNAPSHOT') }
 
 bintray {
     user = System.getenv('BINTRAY_USER')
@@ -115,8 +116,3 @@ allprojects {
     }
 }
 
-model {
-    tasks.generatePomFileForMavenJavaPublication {
-        destination = file('$buildDir/libs/' + project.name + '-' + project.version + '.pom')
-    }
-}
